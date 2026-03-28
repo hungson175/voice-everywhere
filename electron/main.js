@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, ipcMain, session, globalShortcut, screen } = require("electron");
+const { app, BrowserWindow, Tray, ipcMain, session, globalShortcut, screen, systemPreferences, dialog } = require("electron");
 
 // Disable ScreenCaptureKit — Chromium enables it by default on macOS,
 // causing GPU process to burn CPU even though we only need the mic.
@@ -61,8 +61,30 @@ let tray = null;
 let settingsWin = null;
 let barWin = null;
 
+function checkAccessibilityPermission() {
+  const trusted = systemPreferences.isTrustedAccessibilityClient(false);
+  if (!trusted) {
+    // Prompt macOS to show the Accessibility permission dialog
+    systemPreferences.isTrustedAccessibilityClient(true);
+    dialog.showMessageBox({
+      type: "warning",
+      title: "Accessibility Permission Required",
+      message: "Voice Everywhere needs Accessibility access to insert text.",
+      detail: "Go to System Settings → Privacy & Security → Accessibility, then enable Voice Everywhere. Restart the app after granting permission.",
+      buttons: ["Open System Settings", "Later"],
+      defaultId: 0,
+    }).then(({ response }) => {
+      if (response === 0) {
+        require("child_process").exec("open x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility");
+      }
+    });
+  }
+  return trusted;
+}
+
 app.on("ready", () => {
   console.log("Voice Everywhere ready");
+  checkAccessibilityPermission();
 
   // Auto-grant microphone permission
   session.defaultSession.setPermissionRequestHandler(
@@ -246,6 +268,10 @@ ipcMain.handle("get-config", async () => config);
 
 // Insert text at cursor in frontmost app
 ipcMain.handle("insert-text", async (_event, { text, enterMode }) => {
+  if (!systemPreferences.isTrustedAccessibilityClient(false)) {
+    checkAccessibilityPermission();
+    return { success: false, error: "accessibility_denied" };
+  }
   try {
     await textInserter.insertText(text, { enterMode });
     return { success: true };
