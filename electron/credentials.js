@@ -37,24 +37,24 @@ function writeStore(data) {
 
 function hasCredentials() {
   const store = readStore();
-  return !!(store.xaiKey && store.sonioxKey);
+  return !!(store.geminiKey && store.sonioxKey);
 }
 
 function getCredentials() {
   const store = readStore();
   return {
-    xaiKey: store.xaiKey || "",
+    geminiKey: store.geminiKey || "",
     sonioxKey: store.sonioxKey || "",
   };
 }
 
-function saveCredentials(xaiKey, sonioxKey) {
-  writeStore({ xaiKey, sonioxKey });
+function saveCredentials(geminiKey, sonioxKey) {
+  writeStore({ geminiKey, sonioxKey });
 }
 
-function saveXaiKey(xaiKey) {
+function saveGeminiKey(geminiKey) {
   const store = readStore();
-  store.xaiKey = xaiKey;
+  store.geminiKey = geminiKey;
   writeStore(store);
 }
 
@@ -63,4 +63,4 @@ function clearCredentials() {
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 }
 
-module.exports = { hasCredentials, getCredentials, saveCredentials, saveXaiKey, clearCredentials };
+module.exports = { hasCredentials, getCredentials, saveCredentials, saveGeminiKey, clearCredentials };

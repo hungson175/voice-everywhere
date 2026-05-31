@@ -36,16 +36,16 @@ function loadApiKeys() {
   // Only source: stored credentials (user-entered via setup page)
   // No shell env, no .env fallback — avoids stale/expired key confusion
   const creds = credentials.getCredentials();
-  if (creds.xaiKey) process.env.XAI_API_KEY = creds.xaiKey;
+  if (creds.geminiKey) process.env.GEMINI_API_KEY = creds.geminiKey;
   if (creds.sonioxKey) process.env.SONIOX_API_KEY = creds.sonioxKey;
 }
 
 loadApiKeys();
 
 // Log which keys are loaded (redacted) for debugging
-const xaiK = process.env.XAI_API_KEY || "";
+const gemK = process.env.GEMINI_API_KEY || "";
 const sonK = process.env.SONIOX_API_KEY || "";
-console.log(`[keys] XAI: ${xaiK.slice(0, 10)}...${xaiK.slice(-4)} | Soniox: ${sonK ? sonK.slice(0, 8) + "..." + sonK.slice(-4) : "NOT SET"}`);
+console.log(`[keys] Gemini: ${gemK ? gemK.slice(0, 10) + "..." + gemK.slice(-4) : "NOT SET"} | Soniox: ${sonK ? sonK.slice(0, 8) + "..." + sonK.slice(-4) : "NOT SET"}`);
 
 // --- Determine which page to show for settings ---
 function getSettingsStartUrl() {
@@ -221,25 +221,25 @@ ipcMain.on("show-settings", () => {
 });
 
 // --- IPC: Save credentials from setup page, then reload to main UI ---
-ipcMain.handle("save-credentials", async (_event, { xaiKey, sonioxKey }) => {
-  credentials.saveCredentials(xaiKey, sonioxKey);
-  process.env.XAI_API_KEY = xaiKey;
+ipcMain.handle("save-credentials", async (_event, { geminiKey, sonioxKey }) => {
+  credentials.saveCredentials(geminiKey, sonioxKey);
+  process.env.GEMINI_API_KEY = geminiKey;
   process.env.SONIOX_API_KEY = sonioxKey;
   settingsWin.loadURL(
     `file://${path.join(__dirname, "..", "ui", "index.html")}`
   );
 });
 
-// --- IPC: Update just the xAI key (without touching Soniox) ---
-ipcMain.handle("update-xai-key", async (_event, { xaiKey }) => {
-  credentials.saveXaiKey(xaiKey);
-  process.env.XAI_API_KEY = xaiKey;
+// --- IPC: Update just the Gemini key (without touching Soniox) ---
+ipcMain.handle("update-gemini-key", async (_event, { geminiKey }) => {
+  credentials.saveGeminiKey(geminiKey);
+  process.env.GEMINI_API_KEY = geminiKey;
 });
 
 // --- IPC: Reset credentials, go back to setup ---
 ipcMain.handle("reset-credentials", async () => {
   credentials.clearCredentials();
-  delete process.env.XAI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
   delete process.env.SONIOX_API_KEY;
   settingsWin.loadURL(
     `file://${path.join(__dirname, "..", "ui", "setup.html")}`
@@ -285,9 +285,9 @@ ipcMain.handle("insert-text", async (_event, { text, enterMode }) => {
 ipcMain.handle(
   "correct-transcript",
   async (_event, { transcript, outputLang }) => {
-    const apiKey = process.env.XAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error("XAI_API_KEY not set — run setup or add .env");
+      throw new Error("GEMINI_API_KEY not set — run setup or add .env");
     }
     return await llmService.correctTranscript(
       transcript,
@@ -303,7 +303,7 @@ ipcMain.handle("get-soniox-key", async () => {
   return process.env.SONIOX_API_KEY || "";
 });
 
-// Check if xAI key is configured
-ipcMain.handle("has-xai-key", async () => {
-  return !!process.env.XAI_API_KEY;
+// Check if Gemini key is configured
+ipcMain.handle("has-gemini-key", async () => {
+  return !!process.env.GEMINI_API_KEY;
 });

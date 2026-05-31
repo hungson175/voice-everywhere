@@ -1,5 +1,6 @@
 /**
- * LLM voice correction service — fixes STT errors using Grok (xAI).
+ * LLM voice correction service — fixes STT errors using Gemini 2.5 Flash Lite
+ * (non-reasoning) via Google's OpenAI-compatible endpoint.
  */
 
 const STT_FIXES = `## Fix These STT Errors
@@ -69,10 +70,10 @@ Return ONLY the corrected text. No explanations, no quotes, no formatting.`,
 };
 
 /**
- * Correct a voice transcript using Grok (xAI).
+ * Correct a voice transcript using Gemini 2.5 Flash Lite (non-reasoning).
  *
  * @param {string} transcript - Raw STT transcript
- * @param {string} apiKey - xAI API key
+ * @param {string} apiKey - Gemini API key
  * @param {object} llmConfig - LLM config from config.json
  * @param {string} [outputLang="auto"] - Output language: "auto", "english", "vietnamese"
  * @returns {Promise<string>} Corrected text
@@ -81,15 +82,16 @@ async function correctTranscript(transcript, apiKey, llmConfig = {}, outputLang 
   const systemPrompt = PROMPTS[outputLang] || PROMPTS.auto;
   const userContent = `## Voice Transcript (may have pronunciation errors):\n"${transcript}"`;
 
-  const response = await fetch("https://api.x.ai/v1/chat/completions", {
+  const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: llmConfig.model || "grok-4-1-fast-non-reasoning",
+      model: llmConfig.model || "gemini-2.5-flash-lite",
       temperature: llmConfig.temperature ?? 0.1,
+      reasoning_effort: "none",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userContent },
@@ -99,7 +101,7 @@ async function correctTranscript(transcript, apiKey, llmConfig = {}, outputLang 
 
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`xAI API error (${response.status}): ${err}`);
+    throw new Error(`Gemini API error (${response.status}): ${err}`);
   }
 
   const data = await response.json();

@@ -10,8 +10,8 @@
     "language_hints_strict": true
   },
   "llm": {
-    "provider": "xai",
-    "model": "grok-4-1-fast-non-reasoning",
+    "provider": "gemini",
+    "model": "gemini-2.5-flash-lite",
     "temperature": 0.1
   },
   "voice": {

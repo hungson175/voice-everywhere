@@ -14,18 +14,18 @@ contextBridge.exposeInMainWorld("voiceEverywhere", {
   // Soniox API key (for direct WebSocket from renderer)
   getSonioxKey: () => ipcRenderer.invoke("get-soniox-key"),
 
-  // Check if xAI key is configured
-  hasXaiKey: () => ipcRenderer.invoke("has-xai-key"),
+  // Check if Gemini key is configured
+  hasGeminiKey: () => ipcRenderer.invoke("has-gemini-key"),
 
   // Config
   getConfig: () => ipcRenderer.invoke("get-config"),
 
   // Setup: save credentials (Keychain)
-  saveCredentials: (xaiKey, sonioxKey) =>
-    ipcRenderer.invoke("save-credentials", { xaiKey, sonioxKey }),
+  saveCredentials: (geminiKey, sonioxKey) =>
+    ipcRenderer.invoke("save-credentials", { geminiKey, sonioxKey }),
 
-  // Update just the xAI key (preserves Soniox key)
-  updateXaiKey: (xaiKey) => ipcRenderer.invoke("update-xai-key", { xaiKey }),
+  // Update just the Gemini key (preserves Soniox key)
+  updateGeminiKey: (geminiKey) => ipcRenderer.invoke("update-gemini-key", { geminiKey }),
 
   // Reset API keys (back to setup)
   resetCredentials: () => ipcRenderer.invoke("reset-credentials"),

@@ -70,7 +70,7 @@ let detector = null;
 // --- State ---
 let state = "HIDDEN"; // HIDDEN, CONNECTING, LISTENING, PROCESSING, INSERTING, SUCCESS, ERROR
 let sonioxKey = "";
-let hasXaiKey = false;
+let hasGeminiKey = false;
 let skipLlm = localStorage.getItem("skipLlm") === "true";
 let sonioxTerms = [];
 let sonioxTranslationTerms = [];
@@ -266,7 +266,7 @@ async function handleCommandDetected(rawCommand) {
   let text = rawCommand.trim();
 
   // LLM correction
-  if (hasXaiKey && !skipLlm) {
+  if (hasGeminiKey && !skipLlm) {
     setState("PROCESSING", "Correcting...");
     try {
       const outputLang = localStorage.getItem("outputLang") || "auto";
@@ -358,7 +358,7 @@ window.voiceEverywhere.onToggleMic(() => {
 async function init() {
   const config = await window.voiceEverywhere.getConfig();
   sonioxKey = await window.voiceEverywhere.getSonioxKey();
-  hasXaiKey = await window.voiceEverywhere.hasXaiKey();
+  hasGeminiKey = await window.voiceEverywhere.hasGeminiKey();
 
   stt.setConfig(config.soniox);
   detector = new StopWordDetector(config.voice.stop_word);
