@@ -112,6 +112,14 @@ let reminderTimer = null;
 
 // --- Settings from localStorage (shared with settings window) ---
 function loadSettings() {
+  // One-time migration: bump TERMS_VERSION when DEFAULT_* change so stale
+  // localStorage terms refresh to the new defaults (future syncs propagate too).
+  const TERMS_VERSION = "2026-05-31-cc1";
+  if (localStorage.getItem("termsVersion") !== TERMS_VERSION) {
+    localStorage.removeItem("sonioxTerms");
+    localStorage.removeItem("sonioxTranslationTerms");
+    localStorage.setItem("termsVersion", TERMS_VERSION);
+  }
   try {
     const stored = localStorage.getItem("sonioxTerms");
     sonioxTerms = stored ? JSON.parse(stored) : [...DEFAULT_TERMS];
