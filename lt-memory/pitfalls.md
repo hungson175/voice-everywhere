@@ -9,6 +9,13 @@ Known gotchas and hard-earned lessons. Read before modifying tricky areas.
 - Translation terms format: `[{source, target}]` array, NOT `{key: value}` map
 - Max stream duration: 300 minutes per connection; reconnect for longer sessions
 
+## API Keys / Credentials
+
+- The app reads API keys **exclusively** from `~/Library/Application Support/voice-everywhere/credentials.json` (`geminiKey`, `sonioxKey`). By design there is **no shell-env / `.env` fallback** (see `electron/main.js` `loadApiKeys`) — so a stale key in `credentials.json` keeps failing even if `~/dev/.env` has a good one.
+- Symptom → cause: bar shows **"STT error"** = Soniox WebSocket/key problem (invalid key returns `error_message: "Incorrect API key provided"`); **"Mic error: …"** = mic permission/getUserMedia. They are distinct.
+- Recovery when a key goes stale (keys rotate/expire): write a fresh key into `credentials.json` then **restart the app** (it loads keys once at startup). Valid keys live in `~/dev/.env` — Soniox at `SONIOX_API_KEY`, Gemini at `GEMINI_API_KEY`/`GOOGLE_API_KEY` (the macOS `~/dev/.env` Gemini key was expired once; the working one came from **local-pc** `~/dev/.env` `GOOGLE_API_KEY`).
+- LLM provider migrated xAI Grok → Gemini 2.5 Flash Lite via Google's OpenAI-compatible endpoint (`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, `reasoning_effort: "none"`).
+
 ## Electron
 
 - Audio uses Web Audio API in renderer (MediaDevices.getUserMedia), NOT SoX — no native dependencies needed
