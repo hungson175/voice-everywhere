@@ -3,17 +3,29 @@
  * (non-reasoning) via Google's OpenAI-compatible endpoint.
  */
 
-const STT_FIXES = `## Fix These STT Errors
+const STT_FIXES = `## Fix These STT Errors (Boss's vocabulary — synced from command-center voice_corrections.json)
 - "cross code" / "cloud code" / "cloth code" → "Claude Code"
 - "tea mux" / "tee mux" / "T mux" / "TMAX" → "tmux"
-- "tm send" / "T M send" / "team send" → "tm-send"
-- "L M" / "L.M." / "elem" → "LLM"
+- "tm send" / "T M send" / "team send" / "time send" → "tm-send"
+- "L M" / "L.M." / "elem" / "L M M" → "LLM"
+- "lốc" / "lốc lốc" / "sắc lốc" / "log lốc" → "logging"
 - "A.P.I" / "a p i" → "API"
 - "get hub" / "git hub" → "GitHub"
 - "pie test" / "pi test" → "pytest"
 - "you v" / "UV" → "uv"
 - "pee npm" / "P NPM" → "pnpm"
-- "salary" / "seller e" / "celery" → "Celery"`;
+- "P.M." / "p m" / "pee em" → "PM"
+- "F.E." / "f e" / "eff ee" → "FE"
+- "B.E." / "b e" / "bee ee" → "BE"
+- "C.R." / "c r" / "see are" → "CR"
+- "D.K." / "d k" / "dee kay" → "DK"
+- "S.A." / "s a" / "ess ay" → "SA"
+- "seller e" / "celery" → "Celery"
+- "gpn" / "gpin" / "jbrain" / "gbr ain" / "gb r a i n" → "gbrain"  (Boss's knowledge-base tool (garrytan/gbrain); Soniox mishears as gpn or jbrain)
+- "Gariton" / "Garon" / "Garreton" → "Garry Tan"  (author of gbrain (garrytan/gbrain); VN accent makes 'Garry Tan' → 'Gariton' or 'Garon')
+- "esprint" → "sbrain"  (Boss's company brain (~/data/sbrain); STT mishears 'sbrain' as 'esprint' (schwa-prefix + brain→print). Boss-confirmed 2026-05-30: ALWAYS sbrain, even in Kanban/sprint context — never Scrum 'sprint'.)
+- "do nét" / "do net" / "Genet" → "Sonnet"  (Claude Sonnet model (e.g. 'Sonnet 4.6'); STT mishears as 'do nét'/'Genet'/'Zellij 4.6'. Boss rates it best-of-world vs MiMo/Gemini/DeepSeek (2026-05-31).)
+`;
 
 const COMMON_RULES = `## CRITICAL RULES
 1. **Preserve all IDEAS and POINTS** - don't drop any information the user intended to convey
