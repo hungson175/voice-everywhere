@@ -47,6 +47,7 @@ Read [lt-memory/architecture.md](lt-memory/architecture.md) for full details, si
 - Soniox translation terms: `[{source, target}]` array, NOT `{key: value}` map.
 - Build: Must use `CSC_IDENTITY_AUTO_DISCOVERY=false` — without it, electron-builder hangs on code signing.
 - Resend button was removed — clicking UI buttons steals focus from the target app, defeating the purpose of text insertion. Only non-focus-stealing actions (copy to clipboard) belong in the UI.
+- Clipboard contract (text-inserter): the old clipboard is restored ONLY when the AX check confirms the focused element is editable (AXTextField/AXTextArea/AXSearchField/AXComboBox). Otherwise the corrected text stays on the clipboard (orange "press ⌘V" bar state) — restoring after a silently-failed paste loses the text forever. AX false-negatives (browsers/terminals) are expected and harmless; Enter-mode is also skipped on unconfirmed targets to avoid triggering default buttons.
 
 Read [lt-memory/pitfalls.md](lt-memory/pitfalls.md) before modifying tricky areas.
 
