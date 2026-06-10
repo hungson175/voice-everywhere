@@ -137,7 +137,7 @@ function setState(newState, message) {
 
   // Remove all state classes
   bar.classList.remove("state-connecting", "state-listening", "state-processing",
-    "state-inserting", "state-success", "state-error", "hidden", "visible");
+    "state-inserting", "state-success", "state-clipboard", "state-error", "hidden", "visible");
 
   if (newState === "HIDDEN") {
     bar.classList.add("hidden");
@@ -155,12 +155,12 @@ function setState(newState, message) {
 
   // After success/error, return to LISTENING (keep bar visible, STT still running)
   if (autoHideTimer) { clearTimeout(autoHideTimer); autoHideTimer = null; }
-  if (newState === "SUCCESS") {
+  if (newState === "SUCCESS" || newState === "CLIPBOARD") {
     autoHideTimer = setTimeout(() => {
       setState("LISTENING");
       transcriptEl.textContent = "";
       startWaveform();
-    }, 1500);
+    }, newState === "CLIPBOARD" ? 3000 : 1500);
   } else if (newState === "ERROR") {
     autoHideTimer = setTimeout(() => {
       setState("LISTENING");
@@ -326,9 +326,13 @@ async function handleCommandDetected(rawCommand) {
     try {
       const enterMode = localStorage.getItem("enterMode") !== "false";
       const result = await window.voiceEverywhere.insertText(text, { enterMode });
-      if (result.success) {
+      if (result.success && !result.clipboardFallback) {
         beep(1200, 0.2, 0.15);
         setState("SUCCESS", text);
+      } else if (result.clipboardFallback) {
+        // Target not editable (or insert failed) — text kept on clipboard
+        beep(700, 0.2, 0.2);
+        setState("CLIPBOARD", "No text field — copied, press ⌘V to paste");
       } else {
         setState("ERROR", "Insert failed");
       }

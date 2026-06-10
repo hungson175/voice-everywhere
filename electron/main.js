@@ -273,11 +273,14 @@ ipcMain.handle("insert-text", async (_event, { text, enterMode }) => {
     return { success: false, error: "accessibility_denied" };
   }
   try {
-    await textInserter.insertText(text, { enterMode });
-    return { success: true };
+    const result = await textInserter.insertText(text, { enterMode });
+    return { success: true, ...result };
   } catch (err) {
     console.error("Failed to insert text:", err.message);
-    return { success: false, error: err.message };
+    // Never lose the corrected text — leave it on the clipboard
+    const { clipboard } = require("electron");
+    clipboard.writeText(text);
+    return { success: false, error: err.message, clipboardFallback: true };
   }
 });
 

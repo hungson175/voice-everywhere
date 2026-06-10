@@ -73,8 +73,18 @@ body {
   animation: success-flash 0.4s ease;
 }
 
+.bar.state-clipboard {
+  animation: clipboard-flash 0.4s ease;
+}
+
 .bar.state-error {
   animation: error-flash 0.4s ease;
+}
+
+@keyframes clipboard-flash {
+  0% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(255, 159, 10, 0.4); }
+  50% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 4px rgba(255, 159, 10, 0.2); }
+  100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(255, 159, 10, 0); }
 }
 
 @keyframes success-flash {
@@ -123,6 +133,10 @@ body {
   background: var(--bar-green);
 }
 
+.state-clipboard .status-dot {
+  background: var(--bar-orange);
+}
+
 .state-error .status-dot {
   background: var(--bar-red);
 }
@@ -154,6 +168,7 @@ body {
 .state-processing .waveform,
 .state-inserting .waveform,
 .state-success .waveform,
+.state-clipboard .waveform,
 .state-error .waveform {
   opacity: 0.2;
 }
@@ -201,6 +216,10 @@ body {
 
 .transcript .status-msg.success {
   color: var(--bar-green);
+}
+
+.transcript .status-msg.clipboard {
+  color: var(--bar-orange);
 }
 
 .transcript .status-msg.error {
