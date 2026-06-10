@@ -56,15 +56,25 @@ tell application "System Events"
 end tell`;
 
 /**
+ * Classify the raw "ROLE|settable" output of the AX check script.
+ * @param {string} axOutput
+ * @returns {"editable"|"not_editable"|"unknown"}
+ */
+function parseEditability(axOutput) {
+  const [role] = String(axOutput).split("|");
+  if (!role || role === "NO_FOCUS") return "unknown";
+  return EDITABLE_ROLES.has(role) ? "editable" : "not_editable";
+}
+
+/**
  * Check whether the focused element in the frontmost app is text-editable.
+ * @param {object} [deps] - test injection: { osascript }
  * @returns {Promise<"editable"|"not_editable"|"unknown">}
  */
-async function checkFocusedEditable() {
+async function checkFocusedEditable(deps = {}) {
+  const run = deps.osascript || osascript;
   try {
-    const result = await osascript(AX_EDITABLE_CHECK);
-    const [role] = result.split("|");
-    if (role === "NO_FOCUS") return "unknown";
-    return EDITABLE_ROLES.has(role) ? "editable" : "not_editable";
+    return parseEditability(await run(AX_EDITABLE_CHECK));
   } catch (err) {
     console.error("AX editability check failed:", err.message);
     return "unknown";
@@ -76,34 +86,39 @@ async function checkFocusedEditable() {
  * @param {string} text - Text to insert
  * @param {object} [options]
  * @param {boolean} [options.enterMode] - Press Enter after paste to submit
+ * @param {object} [deps] - test injection: { osascript, clipboard, sleep }
  * @returns {Promise<{editability: string, clipboardFallback: boolean}>}
  *   clipboardFallback=true means the text was left on the clipboard
  *   (target not confirmed editable) and Enter was NOT pressed.
  */
-async function insertText(text, options = {}) {
-  const editability = await checkFocusedEditable();
-  const confirmedEditable = editability === "editable";
-  const savedClipboard = clipboard.readText();
+async function insertText(text, options = {}, deps = {}) {
+  const run = deps.osascript || osascript;
+  const clip = deps.clipboard || clipboard;
+  const wait = deps.sleep || sleep;
 
-  clipboard.writeText(text);
+  const editability = await checkFocusedEditable(deps);
+  const confirmedEditable = editability === "editable";
+  const savedClipboard = clip.readText();
+
+  clip.writeText(text);
   // Paste even when not confirmed editable — AX false-negatives (browsers,
   // terminals) still paste fine, and on a truly non-editable target it's a no-op.
-  await osascript('tell application "System Events" to keystroke "v" using command down');
+  await run('tell application "System Events" to keystroke "v" using command down');
 
   // Extra delay for long text so the app finishes processing input buffer
-  await sleep(text.length > 200 ? 700 : 200);
+  await wait(text.length > 200 ? 700 : 200);
 
   // Enter mode: only when confirmed editable — on an unknown target Enter
   // could trigger a default button instead of submitting text.
   if (options.enterMode && confirmedEditable) {
-    await osascript('tell application "System Events" to key code 36');
+    await run('tell application "System Events" to key code 36');
   }
 
-  await sleep(100);
+  await wait(100);
   if (confirmedEditable) {
-    clipboard.writeText(savedClipboard);
+    clip.writeText(savedClipboard);
   }
   return { editability, clipboardFallback: !confirmedEditable };
 }
 
-module.exports = { insertText, checkFocusedEditable };
+module.exports = { insertText, checkFocusedEditable, parseEditability };
