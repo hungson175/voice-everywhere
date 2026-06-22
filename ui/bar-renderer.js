@@ -101,6 +101,7 @@ let detector = null;
 
 // --- State ---
 let state = "HIDDEN"; // HIDDEN, CONNECTING, LISTENING, PROCESSING, INSERTING, SUCCESS, ERROR
+let cmdGen = 0; // bumped on stop; invalidates in-flight handleCommandDetected() runs
 let sonioxKey = "";
 let hasGeminiKey = false;
 let skipLlm = localStorage.getItem("skipLlm") === "true";
@@ -280,6 +281,7 @@ async function startListening() {
 }
 
 function stopListening() {
+  cmdGen++; // invalidate any in-flight command so it won't paste after stop
   stt.stop();
   stopWaveform();
   window.voiceEverywhere.setMicState(false);
@@ -302,6 +304,7 @@ function handleTranscript(fullTranscript, finalTranscript, hasFinal) {
 }
 
 async function handleCommandDetected(rawCommand) {
+  const myGen = ++cmdGen; // claim this generation; a later stop bumps cmdGen past it
   stt.resetTranscript();
   let text = rawCommand.trim();
 
@@ -320,12 +323,16 @@ async function handleCommandDetected(rawCommand) {
     }
   }
 
+  // Cancelled while correcting (user toggled off / restarted) — don't paste into whatever is now focused
+  if (myGen !== cmdGen) return;
+
   // Insert text
   if (text) {
     setState("INSERTING", "Inserting...");
     try {
       const enterMode = localStorage.getItem("enterMode") !== "false";
       const result = await window.voiceEverywhere.insertText(text, { enterMode });
+      if (myGen !== cmdGen) return; // stopped during insert — don't pop the bar back up
       if (result.success && !result.clipboardFallback) {
         beep(1200, 0.2, 0.15);
         setState("SUCCESS", text);
