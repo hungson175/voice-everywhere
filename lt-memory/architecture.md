@@ -18,7 +18,7 @@ Microphone (SoX: rec -q -t raw -b 16 -e signed -c 1 -r 16000 -)
     ↓
 Audio Recorder (raw 16-bit PCM, 16kHz, mono)
     ↓
-Soniox STT (WebSocket streaming, model stt-rt-v4)
+Soniox STT (WebSocket streaming, model stt-rt-v5)
     ↓
 Token accumulation (interim + final)
     ↓
@@ -80,10 +80,10 @@ Requires macOS Accessibility permissions.
 
 ### Soniox STT
 - WebSocket: `wss://stt-rt.soniox.com/transcribe-websocket`
-- Model: `stt-rt-v4`
+- Model: `stt-rt-v5`
 - Format: 16-bit signed PCM, 16kHz, mono (`pcm_s16le`)
 - Protocol: First message = JSON config, then binary audio frames ONLY
-- Language hints: `["vi", "en"]` with `language_hints_strict: true`
+- Language hints: `["vi", "en"]` (soft bias only — no `language_hints_strict` for mixed vi/en speech)
 
 ### xAI Grok (LLM Correction)
 - API: `https://api.x.ai/v1/chat/completions`

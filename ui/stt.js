@@ -197,6 +197,10 @@ class SonioxSTT {
 
       if (finalText) {
         this.transcript += finalText;
+        console.log("[stt] transcript", {
+          stt_model: this.sonioxConfig.model,
+          text: finalText,
+        });
       }
 
       const fullTranscript = this.transcript + interimText;

@@ -51,7 +51,7 @@ npm start
 ## Tech Stack
 
 - **Electron** — Tray + BrowserWindow
-- **Soniox** — Real-time WebSocket STT (`stt-rt-v4`)
+- **Soniox** — Real-time WebSocket STT (`stt-rt-v5`)
 - **xAI Grok** — LLM correction (`grok-4-fast-non-reasoning`)
 - **Web Audio API** — Microphone capture in renderer
 - **AppleScript** — System-level text insertion via clipboard paste

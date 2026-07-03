@@ -27,7 +27,7 @@ Mic (SoX) → Soniox STT (WebSocket) → Stop Word ("thank you") → LLM Correct
 
 - **Runtime**: Electron (Tray + BrowserWindow, NOT `menubar` package)
 - **Audio**: Web Audio API in renderer (MediaDevices.getUserMedia), NOT SoX
-- **STT**: Soniox WebSocket (`wss://stt-rt.soniox.com/transcribe-websocket`, model `stt-rt-v4`)
+- **STT**: Soniox WebSocket (`wss://stt-rt.soniox.com/transcribe-websocket`, model `stt-rt-v5`)
 - **LLM**: xAI Grok (`grok-4-fast-non-reasoning`) — fixes STT errors, translates Vietnamese→English
 - **Text insertion**: System-level (clipboard paste / AppleScript) — the main engineering challenge
 - **Credentials**: macOS Keychain via Electron `safeStorage`

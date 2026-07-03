@@ -1,13 +1,12 @@
 {
   "soniox": {
     "ws_url": "wss://stt-rt.soniox.com/transcribe-websocket",
-    "model": "stt-rt-v4",
+    "model": "stt-rt-v5",
     "sample_rate": 16000,
     "num_channels": 1,
     "audio_format": "pcm_s16le",
     "chunk_size": 4096,
-    "language_hints": ["vi", "en"],
-    "language_hints_strict": true
+    "language_hints": ["vi", "en"]
   },
   "llm": {
     "provider": "gemini",
