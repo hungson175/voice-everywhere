@@ -22,27 +22,10 @@ The recent history shows the repo migrated from Soniox v4 to v5 and now relies o
 
 - The first WebSocket message must be JSON configuration.
 - After that, the stream is binary PCM audio only.
-- The STT client rebuilds full transcript text from final and interim tokens.
+- Output modes can add a one-way `translation` block targeting English or Vietnamese.
+- Translation responses contain original and translated tokens together; `ui/stt.js` separates them by `translation_status`.
+- Soniox does not document a WebSocket switch that guarantees filler/disfluency removal.
 - The renderer logs the model name on final transcript events for traceability.
-
-## Gemini correction
-
-`electron/llm-service.js` calls the Google generative language OpenAI-compatible chat endpoint.
-
-Configured values come from `config.json`:
-
-- `llm.provider`
-- `llm.model`
-- `llm.temperature`
-
-The prompts are specialized for this repo’s use case:
-
-- mixed Vietnamese/English speech
-- preservation of original meaning
-- technical vocabulary normalization
-- translation modes for English, Vietnamese, or language-preserving output
-
-The repo history shows this layer used to point at xAI Grok and was later switched to Gemini 2.5 Flash Lite.
 
 ## macOS Accessibility and text insertion
 
@@ -80,7 +63,7 @@ The build also carries microphone and Apple Events usage descriptions for the ma
 ## Where to look when changing integrations
 
 - Soniox protocol or audio settings: `ui/stt.js`, `config.json`, `tests/soniox-config.test.js`
-- LLM model or prompt behavior: `electron/llm-service.js`, `config.json`
+- Soniox translation and token grouping: `ui/stt.js`, `ui/bar-renderer.js`, `tests/soniox-transcript.test.js`
 - Insertion behavior or accessibility handling: `electron/text-inserter.js`, `electron/main.js`, `tests/text-inserter.test.js`
 - Permissions or packaging: `electron/main.js`, `package.json`
 
@@ -88,7 +71,6 @@ The build also carries microphone and Apple Events usage descriptions for the ma
 
 - `config.json`
 - `ui/stt.js`
-- `electron/llm-service.js`
 - `electron/text-inserter.js`
 - `electron/main.js`
 - `package.json`

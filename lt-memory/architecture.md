@@ -14,17 +14,17 @@ Voice Everywhere is a global voice input app for macOS. It converts speech to te
 ## Pipeline Flow
 
 ```
-Microphone (SoX: rec -q -t raw -b 16 -e signed -c 1 -r 16000 -)
+Microphone (Web Audio API / MediaDevices.getUserMedia)
     ↓
-Audio Recorder (raw 16-bit PCM, 16kHz, mono)
+Renderer PCM conversion (16-bit PCM, 16kHz, mono)
     ↓
 Soniox STT (WebSocket streaming, model stt-rt-v5)
     ↓
 Token accumulation (interim + final)
     ↓
-Stop Word Detector ("thank you")
+Optional Soniox one-way translation (English or Vietnamese)
     ↓
-[Optional] LLM Correction (xAI Grok)
+Stop Word Detector ("thank you")
     ↓
 Insert text at cursor (system-level)
 ```
@@ -39,7 +39,6 @@ The pipeline logic is nearly identical. Reference these files and adapt for stan
 - `src/stt/soniox.ts` — Soniox WebSocket client (nearly identical)
 - `src/stt/context.ts` — Context/terms builder (nearly identical)
 - `src/detection/stopword.ts` — Stop word detection (nearly identical)
-- `src/llm/correction.ts` — xAI Grok LLM correction (nearly identical)
 - `src/pipeline.ts` — Orchestration (adapt: replace terminal sender with system text insertion)
 
 Discard (VS Code specific, not applicable):
@@ -64,7 +63,7 @@ Reference and adapt (discard terminal-specific features like terminal dropdown a
 | Terminal context | None | Last 100 lines from Kitty | None |
 | UI | VS Code status bar | Electron menubar popup | Electron menubar popup (same as voice-terminal) |
 | Activation | VS Code keybinding | Click tray icon | Click tray icon |
-| Config | VS Code settings + SecretStorage | config.json + Keychain | config.json + Keychain |
+| Config | VS Code settings + SecretStorage | config.json + Keychain | config.json + local credentials JSON |
 
 ## Text Insertion (the main engineering challenge)
 
@@ -85,7 +84,7 @@ Requires macOS Accessibility permissions.
 - Protocol: First message = JSON config, then binary audio frames ONLY
 - Language hints: `["vi", "en"]` (soft bias only — no `language_hints_strict` for mixed vi/en speech)
 
-### xAI Grok (LLM Correction)
-- API: `https://api.x.ai/v1/chat/completions`
-- Model: `grok-4-fast-non-reasoning`
-- Purpose: Fix STT errors, translate Vietnamese to English, remove fillers
+### Native Soniox translation
+- One-way config: `{type: "one_way", target_language: "en"}` or `"vi"`
+- The WebSocket returns original and translated tokens together; separate them with `translation_status`
+- Soniox has no documented configuration switch that guarantees filler/disfluency removal

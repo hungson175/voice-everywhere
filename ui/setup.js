@@ -1,14 +1,12 @@
 const saveBtn = document.getElementById("save-btn");
-const geminiInput = document.getElementById("gemini-key");
 const sonioxInput = document.getElementById("soniox-key");
 const errorEl = document.getElementById("setup-error");
 
 saveBtn.addEventListener("click", async () => {
-  const geminiKey = geminiInput.value.trim();
   const sonioxKey = sonioxInput.value.trim();
 
-  if (!geminiKey || !sonioxKey) {
-    errorEl.textContent = "Both API keys are required.";
+  if (!sonioxKey) {
+    errorEl.textContent = "A Soniox API key is required.";
     errorEl.style.display = "block";
     return;
   }
@@ -18,7 +16,7 @@ saveBtn.addEventListener("click", async () => {
   errorEl.style.display = "none";
 
   try {
-    await window.voiceEverywhere.saveCredentials(geminiKey, sonioxKey);
+    await window.voiceEverywhere.saveCredentials(sonioxKey);
   } catch (err) {
     errorEl.textContent = "Failed to save: " + err.message;
     errorEl.style.display = "block";

@@ -14,8 +14,7 @@ Global shortcut / tray / startup
          ui/stt.js
              ↓
         Soniox WebSocket STT
-             ↓
-      optional Gemini rewrite
+      + optional native translation
              ↓
    electron/text-inserter.js
              ↓
@@ -74,13 +73,14 @@ It also renders waveform feedback, transcript status, and the auto-return to lis
 
 - captures microphone audio via the Web Audio API
 - converts audio to PCM and streams it over WebSocket
-- receives Soniox tokens and rebuilds final/interim transcript text
+- separates original and translated Soniox tokens using `translation_status`
+- rebuilds final/interim text for each token stream
 - exposes an analyser node for the bar waveform
 
 ## Service-layer responsibilities
 
-### Transcript correction
-`electron/llm-service.js` calls Gemini through the OpenAI-compatible endpoint at Google’s generative language API. The prompts are tailored for mixed Vietnamese/English speech and emphasize preserving content, removing fillers, and keeping technical vocabulary intact.
+### Native translation
+`ui/bar-renderer.js` maps the output-language setting to Soniox one-way translation (`en` or `vi`). `ui/stt.js` keeps original and translated tokens separate and falls back to the original command if translated tokens do not arrive after the stop word.
 
 ### Text insertion
 `electron/text-inserter.js` is the most safety-critical module. It performs an Accessibility-based editability check before inserting text, then:
@@ -100,7 +100,7 @@ That last rule exists because a failed paste into a non-editable target would ot
 
 - Focus must remain on the user’s target app while dictating.
 - Clipboard state is part of the insertion contract, not a side effect to ignore.
-- Soniox and Gemini config are source-controlled in `config.json`, but credentials are local machine state.
+- Soniox config is source-controlled in `config.json`, but the credential is local machine state.
 - The renderer uses localStorage for user preferences and term lists, which means migrations need to account for stale stored defaults.
 
 ## Change hotspots
@@ -109,7 +109,6 @@ That last rule exists because a failed paste into a non-editable target would ot
 - `ui/bar-renderer.js` — dictation state transitions and UI feedback
 - `ui/stt.js` — microphone and Soniox protocol changes
 - `electron/text-inserter.js` — clipboard and Accessibility behavior
-- `electron/llm-service.js` — correction prompts and provider details
 - `electron/credentials.js` — local credential storage behavior
 
 ## Source evidence
@@ -118,6 +117,5 @@ That last rule exists because a failed paste into a non-editable target would ot
 - `ui/bar-renderer.js`
 - `ui/stt.js`
 - `electron/text-inserter.js`
-- `electron/llm-service.js`
 - `electron/credentials.js`
-- git commits `0df2837`, `e222549`, `7196f84`, `298cb00`, `4188d04`
+- git commits `0df2837`, `e222549`, `7196f84`, `4188d04`

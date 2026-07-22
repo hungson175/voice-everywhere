@@ -15,7 +15,9 @@ class SonioxSTT {
     this.processor = null;
     this.analyser = null;
     this.stream = null;
-    this.transcript = "";
+    this.originalTranscript = "";
+    this.translationTranscript = "";
+    this.translationEnabled = false;
     this.onTranscript = null; // (fullTranscript, finalTranscript, hasFinal) => void
     this.onError = null; // (error) => void
     this.sonioxConfig = null; // loaded from config.json
@@ -32,14 +34,17 @@ class SonioxSTT {
    * Start mic capture and connect to Soniox.
    * @param {string} apiKey
    * @param {object} [context] - Soniox context injection object
+   * @param {object} [sessionOptions] - Optional Soniox session fields such as translation
    */
-  async start(apiKey, context) {
+  async start(apiKey, context, sessionOptions = {}) {
     if (!this.sonioxConfig) {
       throw new Error("Soniox config not set — call setConfig() first");
     }
 
     const cfg = this.sonioxConfig;
-    this.transcript = "";
+    this.originalTranscript = "";
+    this.translationTranscript = "";
+    this.translationEnabled = !!sessionOptions.translation;
 
     // Get microphone
     console.log("[stt] Requesting mic...");
@@ -92,17 +97,7 @@ class SonioxSTT {
     console.log("[stt] Connected! Sending config...");
 
     // CRITICAL: Send JSON config as FIRST message
-    const initMsg = {
-      api_key: apiKey,
-      model: cfg.model,
-      sample_rate: cfg.sample_rate,
-      num_channels: cfg.num_channels,
-      audio_format: cfg.audio_format,
-    };
-    if (cfg.language_hints) initMsg.language_hints = cfg.language_hints;
-    if (cfg.language_hints_strict != null)
-      initMsg.language_hints_strict = cfg.language_hints_strict;
-    if (context) initMsg.context = context;
+    const initMsg = this._buildInitMessage(apiKey, context, sessionOptions);
 
     console.log("[stt] Init msg:", JSON.stringify(initMsg, null, 2));
     this.ws.send(JSON.stringify(initMsg));
@@ -129,6 +124,27 @@ class SonioxSTT {
     source.connect(this.processor);
     this.processor.connect(this.audioContext.destination);
     console.log("[stt] Audio pipeline connected, streaming...");
+  }
+
+  _buildInitMessage(apiKey, context, sessionOptions = {}) {
+    const cfg = this.sonioxConfig;
+    const initMsg = {
+      api_key: apiKey,
+      model: cfg.model,
+      sample_rate: cfg.sample_rate,
+      num_channels: cfg.num_channels,
+      audio_format: cfg.audio_format,
+    };
+    if (cfg.language_hints) initMsg.language_hints = cfg.language_hints;
+    if (cfg.language_hints_strict != null) {
+      initMsg.language_hints_strict = cfg.language_hints_strict;
+    }
+    if (context) initMsg.context = context;
+    if (sessionOptions.translation) {
+      initMsg.translation = sessionOptions.translation;
+      initMsg.enable_language_identification = true;
+    }
+    return initMsg;
   }
 
   /**
@@ -168,7 +184,8 @@ class SonioxSTT {
    * Reset accumulated transcript.
    */
   resetTranscript() {
-    this.transcript = "";
+    this.originalTranscript = "";
+    this.translationTranscript = "";
   }
 
   /**
@@ -184,27 +201,61 @@ class SonioxSTT {
       }
 
       const tokens = data.tokens || [];
-      let finalText = "";
-      let interimText = "";
+      let originalFinalText = "";
+      let originalInterimText = "";
+      let translationFinalText = "";
+      let translationInterimText = "";
 
       for (const token of tokens) {
-        if (token.is_final) {
-          finalText += token.text;
+        const isTranslation = token.translation_status === "translation";
+        if (isTranslation && token.is_final) {
+          translationFinalText += token.text;
+        } else if (isTranslation) {
+          translationInterimText += token.text;
+        } else if (token.is_final) {
+          originalFinalText += token.text;
         } else {
-          interimText += token.text;
+          originalInterimText += token.text;
         }
       }
 
-      if (finalText) {
-        this.transcript += finalText;
+      if (originalFinalText) {
+        this.originalTranscript += originalFinalText;
         console.log("[stt] transcript", {
           stt_model: this.sonioxConfig.model,
-          text: finalText,
+          text: originalFinalText,
+        });
+      }
+      if (translationFinalText) {
+        this.translationTranscript += translationFinalText;
+        console.log("[stt] translation", {
+          stt_model: this.sonioxConfig.model,
+          text: translationFinalText,
         });
       }
 
-      const fullTranscript = this.transcript + interimText;
-      this.onTranscript?.(fullTranscript, this.transcript, !!finalText);
+      const originalFull = this.originalTranscript + originalInterimText;
+      const translationFull = this.translationTranscript + translationInterimText;
+      const displayFull = this.translationEnabled && translationFull
+        ? translationFull
+        : originalFull;
+      const displayFinal = this.translationEnabled && this.translationTranscript
+        ? this.translationTranscript
+        : this.originalTranscript;
+
+      this.onTranscript?.(
+        displayFull,
+        displayFinal,
+        !!(translationFinalText || originalFinalText),
+        {
+          originalFull,
+          originalFinal: this.originalTranscript,
+          translationFull,
+          translationFinal: this.translationTranscript,
+          hasOriginalFinal: !!originalFinalText,
+          hasTranslationFinal: !!translationFinalText,
+        }
+      );
     } catch (err) {
       console.error("STT message parse error:", err);
     }
@@ -221,4 +272,8 @@ class SonioxSTT {
     }
     return int16;
   }
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = SonioxSTT;
 }

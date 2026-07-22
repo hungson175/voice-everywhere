@@ -103,10 +103,10 @@ let detector = null;
 let state = "HIDDEN"; // HIDDEN, CONNECTING, LISTENING, PROCESSING, INSERTING, SUCCESS, ERROR
 let cmdGen = 0; // bumped on stop; invalidates in-flight handleCommandDetected() runs
 let sonioxKey = "";
-let hasGeminiKey = false;
-let skipLlm = localStorage.getItem("skipLlm") === "true";
 let sonioxTerms = [];
 let sonioxTranslationTerms = [];
+let pendingTranslation = null;
+let activeTranslation = null;
 let waveformAnimId = null;
 let autoHideTimer = null;
 let reminderTimer = null;
@@ -129,7 +129,6 @@ function loadSettings() {
     const stored = localStorage.getItem("sonioxTranslationTerms");
     sonioxTranslationTerms = stored ? JSON.parse(stored) : DEFAULT_TRANSLATION_TERMS.map(t => ({ ...t }));
   } catch { sonioxTranslationTerms = DEFAULT_TRANSLATION_TERMS.map(t => ({ ...t })); }
-  skipLlm = localStorage.getItem("skipLlm") === "true";
 }
 
 // --- State machine ---
@@ -158,12 +157,14 @@ function setState(newState, message) {
   if (autoHideTimer) { clearTimeout(autoHideTimer); autoHideTimer = null; }
   if (newState === "SUCCESS" || newState === "CLIPBOARD") {
     autoHideTimer = setTimeout(() => {
+      stt.resetTranscript();
       setState("LISTENING");
       transcriptEl.textContent = "";
       startWaveform();
     }, newState === "CLIPBOARD" ? 3000 : 1500);
   } else if (newState === "ERROR") {
     autoHideTimer = setTimeout(() => {
+      stt.resetTranscript();
       setState("LISTENING");
       transcriptEl.textContent = "";
       startWaveform();
@@ -245,6 +246,17 @@ function buildSonioxContext() {
   };
 }
 
+function getSonioxTranslation() {
+  const outputLang = localStorage.getItem("outputLang") || "auto";
+  if (outputLang === "english") {
+    return { type: "one_way", target_language: "en" };
+  }
+  if (outputLang === "vietnamese") {
+    return { type: "one_way", target_language: "vi" };
+  }
+  return null;
+}
+
 // --- Pipeline ---
 async function startListening() {
   if (state === "LISTENING" || state === "CONNECTING") return;
@@ -265,7 +277,12 @@ async function startListening() {
     window.voiceEverywhere.setMicState(true);
 
     const context = buildSonioxContext();
-    await stt.start(sonioxKey, context);
+    activeTranslation = getSonioxTranslation();
+    await stt.start(
+      sonioxKey,
+      context,
+      activeTranslation ? { translation: activeTranslation } : {}
+    );
 
     setState("LISTENING");
     transcriptEl.textContent = "";
@@ -282,6 +299,8 @@ async function startListening() {
 
 function stopListening() {
   cmdGen++; // invalidate any in-flight command so it won't paste after stop
+  clearPendingTranslation();
+  activeTranslation = null;
   stt.stop();
   stopWaveform();
   window.voiceEverywhere.setMicState(false);
@@ -289,16 +308,72 @@ function stopListening() {
 }
 
 // --- Transcript handling ---
-function handleTranscript(fullTranscript, finalTranscript, hasFinal) {
-  if (state !== "LISTENING") return;
+function clearPendingTranslation() {
+  if (pendingTranslation?.timer) clearTimeout(pendingTranslation.timer);
+  pendingTranslation = null;
+}
+
+function finishPendingTranslation(text) {
+  if (!pendingTranslation) return;
+  clearPendingTranslation();
+  handleCommandDetected(text);
+}
+
+function waitForSonioxTranslation(originalCommand, translationFinal) {
+  pendingTranslation = {
+    originalCommand,
+    translationFinal,
+    timer: setTimeout(() => {
+      if (!pendingTranslation) return;
+      const latestTranslation = pendingTranslation.translationFinal.trim();
+      const translatedResult = detector.process(latestTranslation);
+      const fallbackText = translatedResult.detected
+        ? (translatedResult.command || pendingTranslation.originalCommand)
+        : (latestTranslation || pendingTranslation.originalCommand);
+      finishPendingTranslation(fallbackText);
+    }, 1800),
+  };
+  setState("PROCESSING", "Translating with Soniox...");
+}
+
+function handleTranscript(fullTranscript, finalTranscript, hasFinal, streams = {}) {
+  if (state !== "LISTENING" && !(state === "PROCESSING" && pendingTranslation)) return;
+
+  const originalFinal = streams.originalFinal ?? finalTranscript;
+  const translationFinal = streams.translationFinal || "";
+
+  if (pendingTranslation) {
+    pendingTranslation.translationFinal = translationFinal;
+    const translatedInterim = (streams.translationFull || translationFinal)
+      .slice(translationFinal.length);
+    setTranscriptLive(translationFinal, translatedInterim);
+
+    if (streams.hasTranslationFinal) {
+      const translatedResult = detector.process(translationFinal);
+      if (translatedResult.detected && translatedResult.command) {
+        finishPendingTranslation(translatedResult.command);
+      }
+    }
+    return;
+  }
 
   const interimPart = fullTranscript.slice(finalTranscript.length);
   setTranscriptLive(finalTranscript, interimPart);
 
-  if (hasFinal) {
-    const result = detector.process(finalTranscript);
+  if (streams.hasOriginalFinal ?? hasFinal) {
+    const result = detector.process(originalFinal);
     if (result.detected && result.command) {
-      handleCommandDetected(result.command);
+      if (!activeTranslation) {
+        handleCommandDetected(result.command);
+        return;
+      }
+
+      const translatedResult = detector.process(translationFinal);
+      if (translatedResult.detected && translatedResult.command) {
+        handleCommandDetected(translatedResult.command);
+      } else {
+        waitForSonioxTranslation(result.command, translationFinal);
+      }
     }
   }
 }
@@ -306,24 +381,9 @@ function handleTranscript(fullTranscript, finalTranscript, hasFinal) {
 async function handleCommandDetected(rawCommand) {
   const myGen = ++cmdGen; // claim this generation; a later stop bumps cmdGen past it
   stt.resetTranscript();
-  let text = rawCommand.trim();
+  const text = rawCommand.trim();
 
-  // LLM correction
-  if (hasGeminiKey && !skipLlm) {
-    setState("PROCESSING", "Correcting...");
-    try {
-      const outputLang = localStorage.getItem("outputLang") || "auto";
-      text = await window.voiceEverywhere.correctTranscript(text, outputLang);
-    } catch (err) {
-      console.error("LLM correction failed:", err);
-      // Brief warning beep + flash, but continue with raw text
-      beep(330, 0.15, 0.3);
-      setState("ERROR", "LLM unavailable — inserting raw");
-      await new Promise(r => setTimeout(r, 800));
-    }
-  }
-
-  // Cancelled while correcting (user toggled off / restarted) — don't paste into whatever is now focused
+  // Cancelled while translating (user toggled off / restarted) — don't paste into whatever is now focused
   if (myGen !== cmdGen) return;
 
   // Insert text
@@ -409,7 +469,6 @@ window.voiceEverywhere.onToggleMic(() => {
 async function init() {
   const config = await window.voiceEverywhere.getConfig();
   sonioxKey = await window.voiceEverywhere.getSonioxKey();
-  hasGeminiKey = await window.voiceEverywhere.hasGeminiKey();
 
   stt.setConfig(config.soniox);
   detector = new StopWordDetector(config.voice.stop_word);

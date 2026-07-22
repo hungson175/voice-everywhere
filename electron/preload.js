@@ -7,25 +7,15 @@ contextBridge.exposeInMainWorld("voiceEverywhere", {
   // Text insertion (clipboard paste + AppleScript)
   insertText: (text, options) => ipcRenderer.invoke("insert-text", { text, ...options }),
 
-  // LLM correction
-  correctTranscript: (transcript, outputLang) =>
-    ipcRenderer.invoke("correct-transcript", { transcript, outputLang }),
-
   // Soniox API key (for direct WebSocket from renderer)
   getSonioxKey: () => ipcRenderer.invoke("get-soniox-key"),
-
-  // Check if Gemini key is configured
-  hasGeminiKey: () => ipcRenderer.invoke("has-gemini-key"),
 
   // Config
   getConfig: () => ipcRenderer.invoke("get-config"),
 
-  // Setup: save credentials (Keychain)
-  saveCredentials: (geminiKey, sonioxKey) =>
-    ipcRenderer.invoke("save-credentials", { geminiKey, sonioxKey }),
-
-  // Update just the Gemini key (preserves Soniox key)
-  updateGeminiKey: (geminiKey) => ipcRenderer.invoke("update-gemini-key", { geminiKey }),
+  // Setup: save Soniox credentials
+  saveCredentials: (sonioxKey) =>
+    ipcRenderer.invoke("save-credentials", { sonioxKey }),
 
   // Reset API keys (back to setup)
   resetCredentials: () => ipcRenderer.invoke("reset-credentials"),

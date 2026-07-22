@@ -308,7 +308,7 @@ body {
 .status.processing { color: var(--orange); }
 .status.sent { color: var(--green); }
 
-/* ---- Card sections (transcript + corrected text) ---- */
+/* ---- Card sections (transcript + output text) ---- */
 .card-section {
   background: var(--surface);
   backdrop-filter: blur(20px);
@@ -378,7 +378,7 @@ body {
   font-weight: 400;
 }
 
-/* ---- Command box (corrected text) ---- */
+/* ---- Command box (output text) ---- */
 .command-box {
   background: #1c1c1e;
   border-radius: var(--radius-sm);
@@ -587,27 +587,6 @@ body {
   color: var(--text-secondary);
   margin-bottom: 18px;
   line-height: 1.5;
-}
-
-.skip-llm-key-section {
-  margin-bottom: 14px;
-}
-
-.skip-llm-key-section input {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  background: var(--surface);
-  color: var(--text-primary);
-  outline: none;
-  transition: border-color var(--transition);
-}
-
-.skip-llm-key-section input:focus {
-  border-color: var(--border-focus);
 }
 
 .dialog-actions {

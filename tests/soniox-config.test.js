@@ -27,3 +27,7 @@ test("soniox uses stt-rt-v5 with soft language hints", () => {
   assert.equal(soniox.num_channels, 1);
   assert.equal(soniox.audio_format, "pcm_s16le");
 });
+
+test("v2 has no external LLM configuration", () => {
+  assert.equal(config.llm, undefined);
+});

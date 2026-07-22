@@ -7,7 +7,7 @@
  * 4. Cmd+V via System Events
  * 5. (Enter Mode) Press Enter to submit
  * 6. Restore clipboard — ONLY if the target was confirmed editable.
- *    Otherwise the corrected text stays on the clipboard so it's never
+ *    Otherwise the transcript stays on the clipboard so it's never
  *    lost (the paste was likely a silent no-op).
  *
  * Requires macOS Accessibility permission.

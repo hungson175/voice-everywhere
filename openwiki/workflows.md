@@ -7,7 +7,7 @@ On startup, `electron/main.js` decides whether to show `ui/setup.html` or `ui/in
 First launch flow:
 
 1. The settings window loads the setup page.
-2. The user enters Soniox and Gemini keys.
+2. The user enters a Soniox key.
 3. The setup page saves them via the preload bridge.
 4. The main process persists them in `credentials.json` under the Electron user-data path.
 5. The settings window reloads to the main UI.
@@ -24,15 +24,15 @@ Typical sequence:
 2. `electron/main.js` sends `toggle-mic` to the bar window.
 3. `ui/bar-renderer.js` enters `CONNECTING` and starts `ui/stt.js`.
 4. `ui/stt.js` opens the microphone, connects to Soniox, and streams audio.
-5. Soniox returns final and interim tokens.
-6. The bar displays live transcript and waveform feedback.
-7. When the user stops, the transcript is optionally corrected by Gemini.
+5. Soniox returns final and interim tokens; translation modes return original and translated tokens in one stream.
+6. The STT client separates the token streams and the bar displays live text and waveform feedback.
+7. The stop word completes the original command; translated modes briefly wait for the matching translated command.
 8. The text is inserted into the frontmost app.
 9. The UI either restores to listening or falls back to a clipboard-preserving state.
 
 ## Stop word behavior
 
-The user-specified stop word is stored in `config.json` as `voice.stop_word`. The repository docs and code describe the stop word as a control phrase used to terminate dictation and proceed to correction/insertion.
+The user-specified stop word is stored in `config.json` as `voice.stop_word`. It terminates dictation and proceeds to translation/insertion. Detection always uses the original speech stream so translated output cannot hide the control phrase.
 
 ## Settings workflow
 
@@ -57,17 +57,13 @@ The term lists are versioned with a localStorage migration key, so changes to de
 
 This behavior is important enough that the README and recent git commits both call it out as a core contract rather than a minor detail.
 
-## Correction workflow
+## Output-language workflow
 
-`electron/llm-service.js` sends the raw transcript to Gemini with prompts that:
+- `auto` keeps Soniox's original transcript.
+- `english` enables Soniox one-way translation with target `en`.
+- `vietnamese` enables Soniox one-way translation with target `vi`.
 
-- preserve the user’s meaning
-- remove fillers and repetitions
-- keep profanity intact
-- normalize mixed Vietnamese/English technical speech
-- support output modes for English, Vietnamese, or language-preserving auto mode
-
-The correction list in both renderer files reflects the repository’s domain-specific vocabulary.
+Soniox context terms improve vocabulary and translation choices. There is no external LLM rewrite and no guaranteed filler/repetition cleanup stage.
 
 ## Operational workflow
 
@@ -94,4 +90,3 @@ Useful commands from `package.json` and the repo docs:
 - `ui/renderer.js`
 - `ui/bar-renderer.js`
 - `electron/text-inserter.js`
-- `electron/llm-service.js`

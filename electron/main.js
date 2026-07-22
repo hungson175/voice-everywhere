@@ -13,7 +13,6 @@ const path = require("path");
 const fs = require("fs");
 
 const textInserter = require("./text-inserter");
-const llmService = require("./llm-service");
 const credentials = require("./credentials");
 
 // --- PATH fix for packaged app (Finder doesn't inherit shell PATH) ---
@@ -31,21 +30,20 @@ const configPath = app.isPackaged
   : path.join(__dirname, "..", "config.json");
 const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 
-// --- Load credentials: Keychain → shell env vars → .env fallback ---
+// --- Load the locally stored Soniox credential ---
 function loadApiKeys() {
   // Only source: stored credentials (user-entered via setup page)
   // No shell env, no .env fallback — avoids stale/expired key confusion
+  credentials.removeLegacyGeminiKey();
   const creds = credentials.getCredentials();
-  if (creds.geminiKey) process.env.GEMINI_API_KEY = creds.geminiKey;
   if (creds.sonioxKey) process.env.SONIOX_API_KEY = creds.sonioxKey;
 }
 
 loadApiKeys();
 
 // Log which keys are loaded (redacted) for debugging
-const gemK = process.env.GEMINI_API_KEY || "";
 const sonK = process.env.SONIOX_API_KEY || "";
-console.log(`[keys] Gemini: ${gemK ? gemK.slice(0, 10) + "..." + gemK.slice(-4) : "NOT SET"} | Soniox: ${sonK ? sonK.slice(0, 8) + "..." + sonK.slice(-4) : "NOT SET"}`);
+console.log(`[keys] Soniox: ${sonK ? sonK.slice(0, 8) + "..." + sonK.slice(-4) : "NOT SET"}`);
 
 // --- Determine which page to show for settings ---
 function getSettingsStartUrl() {
@@ -221,25 +219,17 @@ ipcMain.on("show-settings", () => {
 });
 
 // --- IPC: Save credentials from setup page, then reload to main UI ---
-ipcMain.handle("save-credentials", async (_event, { geminiKey, sonioxKey }) => {
-  credentials.saveCredentials(geminiKey, sonioxKey);
-  process.env.GEMINI_API_KEY = geminiKey;
+ipcMain.handle("save-credentials", async (_event, { sonioxKey }) => {
+  credentials.saveCredentials(sonioxKey);
   process.env.SONIOX_API_KEY = sonioxKey;
   settingsWin.loadURL(
     `file://${path.join(__dirname, "..", "ui", "index.html")}`
   );
 });
 
-// --- IPC: Update just the Gemini key (without touching Soniox) ---
-ipcMain.handle("update-gemini-key", async (_event, { geminiKey }) => {
-  credentials.saveGeminiKey(geminiKey);
-  process.env.GEMINI_API_KEY = geminiKey;
-});
-
 // --- IPC: Reset credentials, go back to setup ---
 ipcMain.handle("reset-credentials", async () => {
   credentials.clearCredentials();
-  delete process.env.GEMINI_API_KEY;
   delete process.env.SONIOX_API_KEY;
   settingsWin.loadURL(
     `file://${path.join(__dirname, "..", "ui", "setup.html")}`
@@ -277,36 +267,14 @@ ipcMain.handle("insert-text", async (_event, { text, enterMode }) => {
     return { success: true, ...result };
   } catch (err) {
     console.error("Failed to insert text:", err.message);
-    // Never lose the corrected text — leave it on the clipboard
+    // Never lose the transcript — leave it on the clipboard
     const { clipboard } = require("electron");
     clipboard.writeText(text);
     return { success: false, error: err.message, clipboardFallback: true };
   }
 });
 
-// Correct transcript via LLM
-ipcMain.handle(
-  "correct-transcript",
-  async (_event, { transcript, outputLang }) => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY not set — run setup or add .env");
-    }
-    return await llmService.correctTranscript(
-      transcript,
-      apiKey,
-      config.llm,
-      outputLang
-    );
-  }
-);
-
 // Provide Soniox API key to renderer
 ipcMain.handle("get-soniox-key", async () => {
   return process.env.SONIOX_API_KEY || "";
-});
-
-// Check if Gemini key is configured
-ipcMain.handle("has-gemini-key", async () => {
-  return !!process.env.GEMINI_API_KEY;
 });

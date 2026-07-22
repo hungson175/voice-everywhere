@@ -37,25 +37,26 @@ function writeStore(data) {
 
 function hasCredentials() {
   const store = readStore();
-  return !!(store.geminiKey && store.sonioxKey);
+  return !!store.sonioxKey;
 }
 
 function getCredentials() {
   const store = readStore();
   return {
-    geminiKey: store.geminiKey || "",
     sonioxKey: store.sonioxKey || "",
   };
 }
 
-function saveCredentials(geminiKey, sonioxKey) {
-  writeStore({ geminiKey, sonioxKey });
+function saveCredentials(sonioxKey) {
+  writeStore({ sonioxKey });
 }
 
-function saveGeminiKey(geminiKey) {
+function removeLegacyGeminiKey() {
   const store = readStore();
-  store.geminiKey = geminiKey;
-  writeStore(store);
+  if (Object.prototype.hasOwnProperty.call(store, "geminiKey")) {
+    delete store.geminiKey;
+    writeStore(store);
+  }
 }
 
 function clearCredentials() {
@@ -63,4 +64,4 @@ function clearCredentials() {
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 }
 
-module.exports = { hasCredentials, getCredentials, saveCredentials, saveGeminiKey, clearCredentials };
+module.exports = { hasCredentials, getCredentials, saveCredentials, removeLegacyGeminiKey, clearCredentials };

@@ -26,16 +26,16 @@ macOS Electron app using Tray + BrowserWindow (NOT `menubar` package). Normal pe
 2. **Mic button** — large circular button, center of UI
    - Idle: Gray, label "Start"
    - Listening: Red + pulsing box-shadow animation (2s interval), label "Stop"
-   - Processing: Orange, disabled
+   - Processing: Orange, disabled while waiting for Soniox translation
    - Sent: Green check
 3. **Status indicator** — color-coded text below mic button
-   - Gray "Idle" → Red "Listening..." → Orange "Correcting..." → Green "Sent! Listening..."
+   - Gray "Idle" → Red "Listening..." → Orange "Translating..." → Green "Sent! Listening..."
 4. **Live transcript** — white box, real-time display
    - Final text in **black**, interim text in **gray**
    - Editable after recording stops (edit button toggles contentEditable)
    - Clear button to reset
    - Min 80px, max 120px height with auto-scroll
-5. **Corrected text** — dark terminal-style box (`#1c1c1e` bg, green `#30d158` JetBrains Mono text)
+5. **Output text** — dark terminal-style box (`#1c1c1e` bg, green `#30d158` JetBrains Mono text)
    - Copy button only (no resend — it steals focus from target app)
    - Text auto-inserts at cursor
 6. **Footer** — "Reset API Keys" / "Settings" / "Quit"
@@ -46,16 +46,16 @@ macOS Electron app using Tray + BrowserWindow (NOT `menubar` package). Normal pe
 |-------|-----------|------------|-----------|
 | Idle | Gray "Start" | Gray "Idle" | Gray mic |
 | Listening | Red "Stop" + pulse | Red "Listening..." | Red mic |
-| Processing | Orange disabled | Orange "Correcting..." | Gray mic |
+| Processing | Orange disabled | Orange "Translating..." | Gray mic |
 | Sent | Green check | Green "Sent! Listening..." | Gray mic |
 | Error | Gray | Red error message | Gray mic |
 
 ## Setup Page
 
-- First-run screen if no API keys configured
-- Two password input fields: xAI API key + Soniox API key
+- First-run screen if no Soniox API key is configured
+- One password input field: Soniox API key
 - "Save & Start" button
-- Keys stored in macOS Keychain (encrypted via Electron `safeStorage`)
+- Key stored in the Electron user-data `credentials.json`
 
 ## Design Tokens
 
@@ -88,4 +88,4 @@ macOS Electron app using Tray + BrowserWindow (NOT `menubar` package). Normal pe
 - **NO terminal selector dropdown** — voice-everywhere inserts at system cursor, not a specific terminal
 - **NO terminal preview on hover** — no terminals to preview
 - **NO "Send to Terminal" button** — text auto-inserts at cursor
-- **NO terminal context** — LLM correction works without context (same as voice-vs-extension)
+- **NO terminal context** — Soniox receives only the configured vocabulary/context hints

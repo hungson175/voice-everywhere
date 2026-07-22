@@ -8,11 +8,6 @@
     "chunk_size": 4096,
     "language_hints": ["vi", "en"]
   },
-  "llm": {
-    "provider": "gemini",
-    "model": "gemini-2.5-flash-lite",
-    "temperature": 0.1
-  },
   "voice": {
     "stop_word": "thank you"
   }

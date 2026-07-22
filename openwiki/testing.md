@@ -23,6 +23,10 @@ Why it matters:
 - the app depends on soft language hints for mixed Vietnamese/English speech
 - a mismatch here would break dictation at startup rather than produce a clean UI error
 
+### Soniox transcript/translation token contract
+
+`tests/soniox-transcript.test.js` verifies that original and translated tokens are accumulated separately and that the translated stream is selected only when native translation is active.
+
 ### Text insertion contract
 `tests/text-inserter.test.js` covers the clipboard and editability behavior in `electron/text-inserter.js`.
 
@@ -42,7 +46,7 @@ Based on the source layout and current test files, the repo still relies on manu
 - accessibility permission prompts
 - microphone permission behavior
 - live Soniox audio streaming
-- Gemini correction behavior against real transcripts
+- live Soniox translation behavior against real speech
 - packaging and signing edge cases
 
 ## Recommended validation when changing code
@@ -63,5 +67,6 @@ Recent commits show the test strategy is driven by regressions in production beh
 
 - `package.json`
 - `tests/soniox-config.test.js`
+- `tests/soniox-transcript.test.js`
 - `tests/text-inserter.test.js`
 - git commits `7196f84`, `4188d04`

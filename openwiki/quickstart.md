@@ -1,12 +1,12 @@
 # OpenWiki Quickstart
 
-Voice Everywhere is a macOS Electron menubar app for global voice input. It records microphone audio, streams it to Soniox for speech-to-text, optionally rewrites the transcript with Gemini, and inserts the final text at the cursor in the frontmost app.
+Voice Everywhere is a macOS Electron menubar app for global voice input. It records microphone audio, streams it to Soniox for speech-to-text and optional native translation, then inserts the result at the cursor in the frontmost app.
 
 ## At a glance
 
 - **Runtime**: Electron main process + renderer windows (`electron/main.js`, `ui/*.js`)
-- **Primary flow**: mic → Soniox STT → optional LLM correction → clipboard paste / AppleScript insertion
-- **Configuration**: `config.json` for STT and LLM defaults
+- **Primary flow**: mic → Soniox STT/native translation → clipboard paste / AppleScript insertion
+- **Configuration**: `config.json` for STT defaults
 - **Credentials**: saved locally in the Electron user-data path (`electron/credentials.js`)
 - **Tests**: Node test runner under `tests/`
 - **Packaging**: `electron-builder` for macOS in `package.json`
@@ -15,7 +15,7 @@ Voice Everywhere is a macOS Electron menubar app for global voice input. It reco
 
 - [Architecture](architecture.md) — how the two-window Electron app is wired
 - [Workflows](workflows.md) — launch, setup, dictation, insertion, and settings flows
-- [Integrations](integrations.md) — Soniox, Gemini, macOS permissions, clipboard, AppleScript
+- [Integrations](integrations.md) — Soniox, macOS permissions, clipboard, AppleScript
 - [Testing](testing.md) — current test coverage and verification guidance
 
 ## What the app does
@@ -24,9 +24,8 @@ From `README.md` and the source:
 
 1. The user starts dictation from the global shortcut `Control+Option+Command+V` or the mic UI.
 2. `ui/stt.js` opens the microphone with the Web Audio API and streams PCM audio to Soniox over WebSocket.
-3. Soniox returns final and interim transcript tokens; the bar UI shows the live transcript and waveform.
-4. `electron/llm-service.js` can normalize the transcript, fix STT errors, and translate mixed Vietnamese/English speech.
-5. `electron/text-inserter.js` pastes the result into the frontmost app and uses an Accessibility check to decide whether it is safe to restore the clipboard.
+3. Soniox returns final and interim tokens. Native translation mode returns original and translated tokens together, which `ui/stt.js` separates.
+4. `electron/text-inserter.js` pastes the selected original/translated result into the frontmost app and uses an Accessibility check to decide whether it is safe to restore the clipboard.
 
 ## Important constraints
 
@@ -40,7 +39,6 @@ From `README.md` and the source:
 ### Main process
 - `electron/main.js` — app startup, tray, windows, permissions, IPC, shortcut registration
 - `electron/credentials.js` — credential storage and retrieval
-- `electron/llm-service.js` — Gemini correction client
 - `electron/text-inserter.js` — clipboard paste and editability checks
 - `electron/preload.js` — IPC bridge for the UI
 
@@ -75,9 +73,8 @@ That split exists because the core product requirement is to insert text into ot
 ## Useful source evidence
 
 - `package.json` for scripts and packaging metadata
-- `config.json` for Soniox and Gemini defaults
+- `config.json` for Soniox defaults
 - `electron/main.js` for app lifecycle and window model
 - `ui/bar-renderer.js` for the dictation pipeline state machine
 - `electron/text-inserter.js` for clipboard behavior and Accessibility gating
-- `electron/llm-service.js` for transcript correction behavior
 - `tests/` for executable contracts
