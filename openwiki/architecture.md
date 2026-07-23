@@ -17,8 +17,8 @@ Global shortcut / tray / startup
       + optional native translation
              ↓
    electron/text-inserter.js
-             ↓
-   frontmost macOS application
+      ├─ editable target → frontmost macOS application
+      └─ no input target → new TextEdit draft
 ```
 
 ## Why the app is split this way
@@ -83,15 +83,14 @@ It also renders waveform feedback, transcript status, and the auto-return to lis
 `ui/bar-renderer.js` maps the output-language setting to Soniox one-way translation (`en` or `vi`). `ui/stt.js` keeps original and translated tokens separate and falls back to the original command if translated tokens do not arrive after the stop word.
 
 ### Text insertion
-`electron/text-inserter.js` is the most safety-critical module. It performs an Accessibility-based editability check before inserting text, then:
+`electron/text-inserter.js` is the most safety-critical module. It performs an Accessibility-based editability check before inserting text:
 
-1. saves the current clipboard
-2. copies dictated text to the clipboard
-3. issues Cmd+V in the frontmost app
-4. optionally presses Enter only if the target was confirmed editable
-5. restores the old clipboard only when the paste target was confirmed editable
+1. It copies dictated text to the clipboard.
+2. For a confirmed editable target, it issues Cmd+V, optionally presses Enter, and restores the old clipboard.
+3. For a confirmed non-editable target or no focused element, it opens a new TextEdit document and pastes the transcript there.
+4. If Accessibility is uncertain, it tries Cmd+V in the current target and keeps the transcript on the clipboard.
 
-That last rule exists because a failed paste into a non-editable target would otherwise make the dictated text disappear when the clipboard is restored.
+The TextEdit and uncertain-target paths both keep the transcript on the clipboard as a recovery mechanism.
 
 ### Credential storage
 `electron/credentials.js` persists keys as JSON in the Electron user-data directory. The recent git history shows this replaced a Keychain/safeStorage approach because unsigned rebuilds broke decryption across code-signing identity changes.

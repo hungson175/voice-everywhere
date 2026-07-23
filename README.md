@@ -15,7 +15,7 @@ git clone https://github.com/hungson175/voice-everywhere.git && cd voice-everywh
 1. **Speak** — Click the mic button or press `Ctrl+Option+Cmd+V`
 2. **Transcribe** — Real-time speech-to-text via [Soniox](https://soniox.com/) STT
 3. **Translate (optional)** — Soniox can translate speech directly to English or Vietnamese
-4. **Insert** — Text is automatically pasted at your cursor position in the frontmost app
+4. **Insert** — Text is pasted at your cursor, or opened in a new TextEdit draft when no input field is focused
 
 Works with VS Code, Terminal, browsers, Notes, Slack, and any app that accepts text input.
 
@@ -29,6 +29,7 @@ Works with VS Code, Terminal, browsers, Notes, Slack, and any app that accepts t
 ## Features
 
 - **System-wide text insertion** — Clipboard paste + AppleScript, works in any app
+- **Automatic draft fallback** — Opens a new TextEdit document when no input field is focused
 - **Enter Mode** — Optionally sends Enter after pasting (for chat inputs, terminals)
 - **Live transcript** — See real-time speech-to-text as you speak
 - **Native Soniox translation** — Original speech, always English, or always Vietnamese

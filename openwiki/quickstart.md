@@ -1,11 +1,11 @@
 # OpenWiki Quickstart
 
-Voice Everywhere is a macOS Electron menubar app for global voice input. It records microphone audio, streams it to Soniox for speech-to-text and optional native translation, then inserts the result at the cursor in the frontmost app.
+Voice Everywhere is a macOS Electron menubar app for global voice input. It records microphone audio, streams it to Soniox for speech-to-text and optional native translation, then inserts the result at the cursor or opens it in a new TextEdit draft when no input field is focused.
 
 ## At a glance
 
 - **Runtime**: Electron main process + renderer windows (`electron/main.js`, `ui/*.js`)
-- **Primary flow**: mic → Soniox STT/native translation → clipboard paste / AppleScript insertion
+- **Primary flow**: mic → Soniox STT/native translation → cursor paste or TextEdit draft
 - **Configuration**: `config.json` for STT defaults
 - **Credentials**: saved locally in the Electron user-data path (`electron/credentials.js`)
 - **Tests**: Node test runner under `tests/`
@@ -25,12 +25,12 @@ From `README.md` and the source:
 1. The user starts dictation from the global shortcut `Control+Option+Command+V` or the mic UI.
 2. `ui/stt.js` opens the microphone with the Web Audio API and streams PCM audio to Soniox over WebSocket.
 3. Soniox returns final and interim tokens. Native translation mode returns original and translated tokens together, which `ui/stt.js` separates.
-4. `electron/text-inserter.js` pastes the selected original/translated result into the frontmost app and uses an Accessibility check to decide whether it is safe to restore the clipboard.
+4. `electron/text-inserter.js` uses an Accessibility check to paste the selected result into a focused input, open a new TextEdit draft for a confirmed non-input target, or preserve the text on the clipboard when the check is uncertain.
 
 ## Important constraints
 
 - This app is designed to work in **any** macOS app, so focus-stealing UI interactions are intentionally minimized.
-- Text insertion is conservative: the app prefers to leave text on the clipboard rather than risk losing dictated text when a paste silently fails.
+- Text insertion is conservative: the transcript stays on the clipboard when TextEdit is used or when target detection is uncertain, so dictated text is not lost.
 - Accessibility permission is required for insertion; microphone access is requested for the STT pipeline.
 - The current credential store is a plain JSON file in the Electron user-data path, not Keychain.
 

@@ -393,13 +393,16 @@ async function handleCommandDetected(rawCommand) {
       const enterMode = localStorage.getItem("enterMode") !== "false";
       const result = await window.voiceEverywhere.insertText(text, { enterMode });
       if (myGen !== cmdGen) return; // stopped during insert — don't pop the bar back up
-      if (result.success && !result.clipboardFallback) {
+      if (result.success && result.openedDraft) {
+        beep(1200, 0.2, 0.15);
+        setState("SUCCESS", `Opened draft in ${result.draftApp || "text editor"}`);
+      } else if (result.success && !result.clipboardFallback) {
         beep(1200, 0.2, 0.15);
         setState("SUCCESS", text);
       } else if (result.clipboardFallback) {
-        // Target not editable (or insert failed) — text kept on clipboard
+        // AX state uncertain (or insert failed) — text kept on clipboard
         beep(700, 0.2, 0.2);
-        setState("CLIPBOARD", "No text field — copied, press ⌘V to paste");
+        setState("CLIPBOARD", "Could not verify target — copied, press ⌘V");
       } else {
         setState("ERROR", "Insert failed");
       }

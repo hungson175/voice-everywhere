@@ -25,4 +25,5 @@ Known gotchas and hard-earned lessons. Read before modifying tricky areas.
 - Build: Must use `CSC_IDENTITY_AUTO_DISCOVERY=false` or electron-builder hangs on code signing
 - `app.on("window-all-closed", () => {})` is required — without it, macOS quits when window closes
 - UI buttons that trigger IPC calls (like resend/insert) steal focus from the target app — avoid action buttons that need the target app focused
+- Text fallback: a confirmed non-editable target or no focused element opens a new TextEdit draft. An uncertain AX result must not open TextEdit automatically; try the current target and keep the transcript on the clipboard instead.
 - Chromium auto-enables `ScreenCaptureKitPickerScreen` + `ScreenCaptureKitStreamPickerSonoma` on macOS — GPU process burns ~18% CPU doing nothing. Fix: `app.commandLine.appendSwitch("disable-features", "ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma")` and `app.commandLine.appendSwitch("disable-gpu")` for audio-only apps

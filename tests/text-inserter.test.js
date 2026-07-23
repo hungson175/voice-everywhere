@@ -46,6 +46,12 @@ function fakeOsascript(axResult) {
   };
   fn.calls = calls;
   fn.pastes = () => calls.filter((s) => s.includes('keystroke "v"')).length;
+  fn.currentTargetPastes = () => calls.filter((s) =>
+    s.includes('keystroke "v"') && !s.includes('tell application "TextEdit"')
+  ).length;
+  fn.textEditDrafts = () => calls.filter((s) =>
+    s.includes('tell application "TextEdit"') && s.includes("make new document")
+  ).length;
   fn.enters = () => calls.filter((s) => s.includes("key code 36")).length;
   return fn;
 }
@@ -67,8 +73,12 @@ describe("parseEditability", () => {
     }
   });
 
-  test("no focused element is unknown", () => {
-    assert.equal(parseEditability("NO_FOCUS|false"), "unknown");
+  test("a settable AXValue is editable even for a non-standard role", () => {
+    assert.equal(parseEditability("AXWebArea|true"), "editable");
+  });
+
+  test("no focused element is classified separately", () => {
+    assert.equal(parseEditability("NO_FOCUS|false"), "no_focus");
   });
 
   test("empty/garbage output is never treated as editable", () => {
@@ -90,7 +100,9 @@ describe("insertText — editable target", () => {
 
     assert.equal(result.clipboardFallback, false);
     assert.equal(result.editability, "editable");
+    assert.equal(result.openedDraft, false);
     assert.equal(osa.pastes(), 1);
+    assert.equal(osa.textEditDrafts(), 0);
     assert.equal(osa.enters(), 1);
     // text was put on clipboard for the paste, then old content restored
     assert.deepEqual(clip.writes, ["hello world", "OLD CLIPBOARD"]);
@@ -106,21 +118,22 @@ describe("insertText — editable target", () => {
   });
 });
 
-describe("insertText — non-editable target (the bug this guards against)", () => {
-  test("keeps text on clipboard, does NOT restore, does NOT press Enter", async () => {
+describe("insertText — non-editable target", () => {
+  test("opens a new TextEdit draft and keeps the transcript on the clipboard", async () => {
     const clip = fakeClipboard("OLD CLIPBOARD");
     const osa = fakeOsascript("AXButton|false");
 
     const result = await insertText("dictated text", { enterMode: true },
       { osascript: osa, clipboard: clip, sleep: noSleep });
 
-    assert.equal(result.clipboardFallback, true);
+    assert.equal(result.clipboardFallback, false);
     assert.equal(result.editability, "not_editable");
-    // paste still attempted (harmless no-op; covers AX false-negatives)
+    assert.equal(result.openedDraft, true);
+    assert.equal(result.draftApp, "TextEdit");
+    assert.equal(osa.textEditDrafts(), 1);
+    assert.equal(osa.currentTargetPastes(), 0);
     assert.equal(osa.pastes(), 1);
-    // Enter suppressed — could trigger a default button on unknown targets
     assert.equal(osa.enters(), 0);
-    // THE core guarantee: dictated text survives on the clipboard
     assert.equal(clip.current, "dictated text");
   });
 
@@ -133,16 +146,22 @@ describe("insertText — non-editable target (the bug this guards against)", () 
 
     assert.equal(result.clipboardFallback, true);
     assert.equal(result.editability, "unknown");
+    assert.equal(result.openedDraft, false);
+    assert.equal(osa.textEditDrafts(), 0);
+    assert.equal(osa.currentTargetPastes(), 1);
     assert.equal(osa.enters(), 0);
     assert.equal(clip.current, "dictated text");
   });
 
-  test("no focused element falls back safely", async () => {
+  test("no focused element opens a new TextEdit draft", async () => {
     const clip = fakeClipboard("OLD");
     const osa = fakeOsascript("NO_FOCUS|false");
     const result = await insertText("t", {},
       { osascript: osa, clipboard: clip, sleep: noSleep });
-    assert.equal(result.clipboardFallback, true);
+    assert.equal(result.clipboardFallback, false);
+    assert.equal(result.editability, "no_focus");
+    assert.equal(result.openedDraft, true);
+    assert.equal(osa.textEditDrafts(), 1);
     assert.equal(clip.current, "t");
   });
 });
@@ -153,7 +172,7 @@ describe("integration — real osascript AX check", { skip: process.platform !==
   test("checkFocusedEditable returns a valid classification", async () => {
     const result = await checkFocusedEditable();
     assert.ok(
-      ["editable", "not_editable", "unknown"].includes(result),
+      ["editable", "not_editable", "no_focus", "unknown"].includes(result),
       `unexpected: ${result}`
     );
   });

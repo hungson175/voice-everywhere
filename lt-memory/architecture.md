@@ -26,7 +26,7 @@ Optional Soniox one-way translation (English or Vietnamese)
     ↓
 Stop Word Detector ("thank you")
     ↓
-Insert text at cursor (system-level)
+Insert at cursor, or open a new TextEdit draft when no input is focused
 ```
 
 Pipeline code is nearly identical to voice-vs-extension. The only difference is the final step: system-level text insertion instead of `terminal.sendText()`.
@@ -74,6 +74,11 @@ Must insert text at cursor position in ANY app. Possible approaches on macOS:
 - **Accessibility API**: Find focused text field and insert directly
 
 Requires macOS Accessibility permissions.
+
+When Accessibility confirms that the focused element is not editable, or that
+there is no focused element, the app activates TextEdit, creates a new unsaved
+document, and pastes the transcript there. An uncertain Accessibility result
+still uses the clipboard-preserving current-target fallback.
 
 ## External Services
 

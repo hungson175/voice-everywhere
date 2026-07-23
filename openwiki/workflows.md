@@ -27,8 +27,8 @@ Typical sequence:
 5. Soniox returns final and interim tokens; translation modes return original and translated tokens in one stream.
 6. The STT client separates the token streams and the bar displays live text and waveform feedback.
 7. The stop word completes the original command; translated modes briefly wait for the matching translated command.
-8. The text is inserted into the frontmost app.
-9. The UI either restores to listening or falls back to a clipboard-preserving state.
+8. The text is inserted into the focused input, or a new TextEdit draft opens when there is no input target.
+9. The UI returns to listening; uncertain Accessibility states use a clipboard-preserving fallback.
 
 ## Stop word behavior
 
@@ -51,8 +51,10 @@ The term lists are versioned with a localStorage migration key, so changes to de
 `electron/text-inserter.js` implements a safety-first clipboard contract:
 
 - the app checks the frontmost Accessibility focus to see whether the current target appears editable
-- if editable is confirmed, the clipboard is restored after the paste
-- if not confirmed, the inserted text remains on the clipboard so it is not lost
+- if editable is confirmed, the text is pasted and the old clipboard is restored
+- if a non-editable target or no focused element is confirmed, a new TextEdit draft opens and receives the transcript
+- if target detection is uncertain, the app tries the current target and keeps the transcript on the clipboard
+- the transcript also stays on the clipboard after the TextEdit fallback
 - Enter mode is only used on confirmed editable targets
 
 This behavior is important enough that the README and recent git commits both call it out as a core contract rather than a minor detail.
@@ -77,7 +79,7 @@ Useful commands from `package.json` and the repo docs:
 ## What to watch out for
 
 - Never change focus-stealing behavior casually; this app is built around not interrupting the target app.
-- Do not restore the clipboard unless insertion succeeded in a confirmed editable target.
+- Do not restore the clipboard unless insertion succeeded in the original confirmed editable target.
 - If you change default term lists, update the localStorage migration version so old state refreshes.
 - If you change Soniox protocol details, review the config contract test and the STT client together.
 
