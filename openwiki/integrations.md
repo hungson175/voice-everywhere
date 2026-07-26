@@ -34,7 +34,7 @@ The recent history shows the repo migrated from Soniox v4 to v5 and now relies o
 The insertion contract is deliberately conservative:
 
 - confirm editability when possible
-- open a new TextEdit draft when the current focus is confirmed non-editable or absent
+- open the disposable scratchpad when the current focus is confirmed non-editable or absent
 - keep the clipboard safe if the target is uncertain
 - only press Enter when the target is confirmed editable
 
@@ -46,11 +46,15 @@ The insertion contract is deliberately conservative:
 
 ## Clipboard
 
-`electron/text-inserter.js` uses the Electron clipboard API as part of the paste contract. It carries text into either the focused input or TextEdit and remains the recovery mechanism when insertion is uncertain.
+`electron/text-inserter.js` uses the Electron clipboard API as part of the paste contract. It carries text into the focused input, remains populated while the scratchpad is open, and is the recovery mechanism when insertion is uncertain.
 
-## TextEdit draft fallback
+## Disposable scratchpad fallback
 
-macOS does not expose a generic “default note editor” setting. Voice Everywhere therefore uses the built-in TextEdit app. AppleScript activates TextEdit, creates a new unsaved document, and pastes the transcript without triggering Enter mode.
+macOS note applications auto-save notes or files, which conflicts with the
+temporary edit-copy-discard workflow. Voice Everywhere therefore owns a small
+scratchpad `BrowserWindow`. The main process sends it the transcript through an
+isolated preload bridge; the renderer holds the text only in memory. Closing
+the window discards it immediately without a save prompt or filesystem write.
 
 ## Packaging and build integration
 

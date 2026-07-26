@@ -35,7 +35,7 @@ This is the repo’s most safety-sensitive behavior because a failed paste can p
 The contract emphasized by the implementation and the recent commit history is:
 
 - confirmed editable target → paste, then restore clipboard
-- confirmed non-editable target or no focused element → open a new TextEdit draft and keep the transcript on the clipboard
+- confirmed non-editable target or no focused element → open the disposable scratchpad and keep the transcript on the clipboard
 - uncertain Accessibility state → try the current target and keep text on the clipboard
 - Enter mode only on confirmed editable targets
 

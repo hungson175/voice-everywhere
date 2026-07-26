@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self'; script-src 'self'"
+  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Everywhere — Scratchpad</title>
+  <link rel="stylesheet" href="scratchpad-styles.css">
+</head>
+<body>
+  <div class="window">
+    <header class="topbar">
+      <div class="identity">
+        <span class="temporary-dot" aria-hidden="true"></span>
+        <span class="eyebrow">Temporary draft</span>
+      </div>
+      <div class="heading">
+        <h1>Scratchpad</h1>
+        <p>Close it when you’re done. Nothing is saved.</p>
+      </div>
+    </header>
+
+    <main class="paper">
+      <div class="margin-rule" aria-hidden="true"></div>
+      <textarea
+        id="scratchpad"
+        aria-label="Temporary transcript"
+        autocomplete="off"
+        spellcheck="true"
+      ></textarea>
+    </main>
+
+    <footer class="footer">
+      <span><kbd>⌘A</kbd> select all&nbsp;&nbsp; <kbd>⌘C</kbd> copy&nbsp;&nbsp; <kbd>⌘W</kbd> discard</span>
+      <span id="character-count" aria-live="polite">0 characters</span>
+    </footer>
+  </div>
+
+  <script src="scratchpad.js"></script>
+</body>
+</html>

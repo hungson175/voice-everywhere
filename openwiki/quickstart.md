@@ -1,11 +1,11 @@
 # OpenWiki Quickstart
 
-Voice Everywhere is a macOS Electron menubar app for global voice input. It records microphone audio, streams it to Soniox for speech-to-text and optional native translation, then inserts the result at the cursor or opens it in a new TextEdit draft when no input field is focused.
+Voice Everywhere is a macOS Electron menubar app for global voice input. It records microphone audio, streams it to Soniox for speech-to-text and optional native translation, then inserts the result at the cursor or opens it in a disposable in-app scratchpad when no input field is focused.
 
 ## At a glance
 
 - **Runtime**: Electron main process + renderer windows (`electron/main.js`, `ui/*.js`)
-- **Primary flow**: mic → Soniox STT/native translation → cursor paste or TextEdit draft
+- **Primary flow**: mic → Soniox STT/native translation → cursor paste or disposable scratchpad
 - **Configuration**: `config.json` for STT defaults
 - **Credentials**: saved locally in the Electron user-data path (`electron/credentials.js`)
 - **Tests**: Node test runner under `tests/`
@@ -25,19 +25,19 @@ From `README.md` and the source:
 1. The user starts dictation from the global shortcut `Control+Option+Command+V` or the mic UI.
 2. `ui/stt.js` opens the microphone with the Web Audio API and streams PCM audio to Soniox over WebSocket.
 3. Soniox returns final and interim tokens. Native translation mode returns original and translated tokens together, which `ui/stt.js` separates.
-4. `electron/text-inserter.js` uses an Accessibility check to paste the selected result into a focused input, open a new TextEdit draft for a confirmed non-input target, or preserve the text on the clipboard when the check is uncertain.
+4. `electron/text-inserter.js` uses an Accessibility check to paste the selected result into a focused input, open the disposable scratchpad for a confirmed non-input target, or preserve the text on the clipboard when the check is uncertain.
 
 ## Important constraints
 
 - This app is designed to work in **any** macOS app, so focus-stealing UI interactions are intentionally minimized.
-- Text insertion is conservative: the transcript stays on the clipboard when TextEdit is used or when target detection is uncertain, so dictated text is not lost.
+- Text insertion is conservative: the transcript stays on the clipboard when the scratchpad is used or when target detection is uncertain, so dictated text is not lost.
 - Accessibility permission is required for insertion; microphone access is requested for the STT pipeline.
 - The current credential store is a plain JSON file in the Electron user-data path, not Keychain.
 
 ## Repository map
 
 ### Main process
-- `electron/main.js` — app startup, tray, windows, permissions, IPC, shortcut registration
+- `electron/main.js` — app startup, tray, settings/bar/scratchpad windows, permissions, IPC, shortcut registration
 - `electron/credentials.js` — credential storage and retrieval
 - `electron/text-inserter.js` — clipboard paste and editability checks
 - `electron/preload.js` — IPC bridge for the UI
@@ -59,6 +59,7 @@ The app uses two windows:
 
 - **Settings window**: visible, focusable window for credentials and app settings
 - **Floating bar**: always-on-top, non-focusable overlay that tracks dictation state without stealing focus from the target app
+- **Scratchpad**: focusable, disposable editor that never saves a file
 
 That split exists because the core product requirement is to insert text into other apps without breaking the user’s current focus.
 

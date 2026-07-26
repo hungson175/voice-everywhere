@@ -27,7 +27,7 @@ Typical sequence:
 5. Soniox returns final and interim tokens; translation modes return original and translated tokens in one stream.
 6. The STT client separates the token streams and the bar displays live text and waveform feedback.
 7. The stop word completes the original command; translated modes briefly wait for the matching translated command.
-8. The text is inserted into the focused input, or a new TextEdit draft opens when there is no input target.
+8. The text is inserted into the focused input, or the disposable scratchpad opens when there is no input target.
 9. The UI returns to listening; uncertain Accessibility states use a clipboard-preserving fallback.
 
 ## Stop word behavior
@@ -52,10 +52,14 @@ The term lists are versioned with a localStorage migration key, so changes to de
 
 - the app checks the frontmost Accessibility focus to see whether the current target appears editable
 - if editable is confirmed, the text is pasted and the old clipboard is restored
-- if a non-editable target or no focused element is confirmed, a new TextEdit draft opens and receives the transcript
+- if a non-editable target or no focused element is confirmed, the disposable scratchpad opens with the transcript prefilled
 - if target detection is uncertain, the app tries the current target and keeps the transcript on the clipboard
-- the transcript also stays on the clipboard after the TextEdit fallback
+- the transcript also stays on the clipboard after the scratchpad fallback
 - Enter mode is only used on confirmed editable targets
+
+The scratchpad is intentionally not a note application or document editor. It
+keeps content only in the open renderer window and closes without saving,
+creating a file, or showing a confirmation prompt.
 
 This behavior is important enough that the README and recent git commits both call it out as a core contract rather than a minor detail.
 

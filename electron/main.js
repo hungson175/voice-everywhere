@@ -58,6 +58,53 @@ const activeIconPath = path.join(__dirname, "..", "assets", "circle-active.png")
 let tray = null;
 let settingsWin = null;
 let barWin = null;
+let scratchpadWin = null;
+let scratchpadLoad = null;
+
+async function openScratchpad(text) {
+  if (!scratchpadWin || scratchpadWin.isDestroyed()) {
+    const win = new BrowserWindow({
+      width: 760,
+      height: 520,
+      minWidth: 520,
+      minHeight: 320,
+      show: false,
+      title: "Voice Everywhere — Scratchpad",
+      titleBarStyle: "hiddenInset",
+      trafficLightPosition: { x: 18, y: 18 },
+      backgroundColor: "#f3efe4",
+      autoHideMenuBar: true,
+      webPreferences: {
+        preload: path.join(__dirname, "scratchpad-preload.js"),
+        nodeIntegration: false,
+        contextIsolation: true,
+      },
+    });
+
+    scratchpadWin = win;
+    scratchpadLoad = win.loadFile(
+      path.join(__dirname, "..", "ui", "scratchpad.html")
+    );
+    win.on("closed", () => {
+      if (scratchpadWin === win) {
+        scratchpadWin = null;
+        scratchpadLoad = null;
+      }
+    });
+  }
+
+  const win = scratchpadWin;
+  await scratchpadLoad;
+  if (!win || win.isDestroyed()) {
+    throw new Error("Scratchpad closed before it was ready");
+  }
+
+  win.webContents.send("scratchpad-text", text);
+  if (win.isMinimized()) win.restore();
+  win.show();
+  win.focus();
+  return { draftApp: "Scratchpad" };
+}
 
 function checkAccessibilityPermission() {
   const trusted = systemPreferences.isTrustedAccessibilityClient(false);
@@ -263,7 +310,11 @@ ipcMain.handle("insert-text", async (_event, { text, enterMode }) => {
     return { success: false, error: "accessibility_denied" };
   }
   try {
-    const result = await textInserter.insertText(text, { enterMode });
+    const result = await textInserter.insertText(
+      text,
+      { enterMode },
+      { openDraft: openScratchpad }
+    );
     return { success: true, ...result };
   } catch (err) {
     console.error("Failed to insert text:", err.message);

@@ -18,15 +18,16 @@ Global shortcut / tray / startup
              ↓
    electron/text-inserter.js
       ├─ editable target → frontmost macOS application
-      └─ no input target → new TextEdit draft
+      └─ no input target → disposable in-app scratchpad
 ```
 
 ## Why the app is split this way
 
-The app needs a visible settings surface and an always-available dictation surface, but the dictation surface must not steal focus from the user’s current app. That is why `electron/main.js` creates:
+The app needs a visible settings surface, an always-available dictation surface, and a file-free fallback editor. That is why `electron/main.js` creates:
 
 - a **focusable settings window** for API keys and preferences
 - a **non-focusable floating bar** for recording/transcript feedback
+- a **focusable scratchpad window** only when there is no editable target
 
 The bar is intentionally kept non-interactive at the window level (`focusable: false`, ignored mouse events) so dictation can continue while the user keeps working elsewhere.
 
@@ -87,10 +88,10 @@ It also renders waveform feedback, transcript status, and the auto-return to lis
 
 1. It copies dictated text to the clipboard.
 2. For a confirmed editable target, it issues Cmd+V, optionally presses Enter, and restores the old clipboard.
-3. For a confirmed non-editable target or no focused element, it opens a new TextEdit document and pastes the transcript there.
+3. For a confirmed non-editable target or no focused element, it opens the disposable scratchpad with the transcript prefilled.
 4. If Accessibility is uncertain, it tries Cmd+V in the current target and keeps the transcript on the clipboard.
 
-The TextEdit and uncertain-target paths both keep the transcript on the clipboard as a recovery mechanism.
+The scratchpad and uncertain-target paths both keep the transcript on the clipboard as a recovery mechanism. The scratchpad is renderer-only temporary state: closing it does not save or create a file.
 
 ### Credential storage
 `electron/credentials.js` persists keys as JSON in the Electron user-data directory. The recent git history shows this replaced a Keychain/safeStorage approach because unsigned rebuilds broke decryption across code-signing identity changes.

@@ -1,0 +1,183 @@
+:root {
+  --paper: #f3efe4;
+  --paper-deep: #e9e2d2;
+  --ink: #25241f;
+  --ink-muted: #777264;
+  --rule: rgba(60, 72, 76, 0.105);
+  --margin: rgba(211, 79, 52, 0.34);
+  --temporary: #e56c3d;
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.window {
+  display: grid;
+  grid-template-rows: 104px minmax(0, 1fr) 38px;
+  height: 100vh;
+  background:
+    radial-gradient(circle at 84% -20%, rgba(229, 108, 61, 0.09), transparent 34%),
+    var(--paper);
+}
+
+.topbar {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(130px, 0.35fr) 1fr;
+  align-items: end;
+  gap: 28px;
+  padding: 38px 34px 18px 88px;
+  border-bottom: 1px solid rgba(37, 36, 31, 0.12);
+  -webkit-app-region: drag;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 5px;
+}
+
+.temporary-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--temporary);
+  box-shadow: 0 0 0 4px rgba(229, 108, 61, 0.12);
+}
+
+.eyebrow {
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.heading {
+  min-width: 0;
+}
+
+h1 {
+  margin: 0 0 2px;
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+.heading p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paper {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background-image:
+    linear-gradient(to right, transparent 0, transparent 76px, var(--margin) 76px, var(--margin) 77px, transparent 77px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--rule) 27px, var(--rule) 28px);
+  background-position: 0 25px;
+}
+
+.paper::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  opacity: 0.2;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E");
+}
+
+#scratchpad {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 25px 38px 44px 94px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 430;
+  line-height: 28px;
+  letter-spacing: -0.014em;
+  caret-color: var(--temporary);
+  -webkit-app-region: no-drag;
+}
+
+#scratchpad::selection {
+  color: var(--ink);
+  background: rgba(229, 108, 61, 0.22);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 34px;
+  border-top: 1px solid rgba(37, 36, 31, 0.12);
+  color: var(--ink-muted);
+  background: rgba(233, 226, 210, 0.72);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+kbd {
+  color: var(--ink);
+  font: inherit;
+  font-weight: 650;
+}
+
+@media (max-width: 620px) {
+  .topbar {
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding-left: 78px;
+  }
+
+  .identity {
+    display: none;
+  }
+
+  .footer {
+    padding: 0 24px;
+  }
+
+  .footer > :first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

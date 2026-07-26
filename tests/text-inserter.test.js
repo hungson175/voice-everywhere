@@ -46,13 +46,17 @@ function fakeOsascript(axResult) {
   };
   fn.calls = calls;
   fn.pastes = () => calls.filter((s) => s.includes('keystroke "v"')).length;
-  fn.currentTargetPastes = () => calls.filter((s) =>
-    s.includes('keystroke "v"') && !s.includes('tell application "TextEdit"')
-  ).length;
-  fn.textEditDrafts = () => calls.filter((s) =>
-    s.includes('tell application "TextEdit"') && s.includes("make new document")
-  ).length;
   fn.enters = () => calls.filter((s) => s.includes("key code 36")).length;
+  return fn;
+}
+
+function fakeDraftOpener() {
+  const texts = [];
+  const fn = async (text) => {
+    texts.push(text);
+    return { draftApp: "Scratchpad" };
+  };
+  fn.texts = texts;
   return fn;
 }
 
@@ -102,7 +106,6 @@ describe("insertText — editable target", () => {
     assert.equal(result.editability, "editable");
     assert.equal(result.openedDraft, false);
     assert.equal(osa.pastes(), 1);
-    assert.equal(osa.textEditDrafts(), 0);
     assert.equal(osa.enters(), 1);
     // text was put on clipboard for the paste, then old content restored
     assert.deepEqual(clip.writes, ["hello world", "OLD CLIPBOARD"]);
@@ -119,20 +122,20 @@ describe("insertText — editable target", () => {
 });
 
 describe("insertText — non-editable target", () => {
-  test("opens a new TextEdit draft and keeps the transcript on the clipboard", async () => {
+  test("opens the disposable scratchpad and keeps the transcript on the clipboard", async () => {
     const clip = fakeClipboard("OLD CLIPBOARD");
     const osa = fakeOsascript("AXButton|false");
+    const openDraft = fakeDraftOpener();
 
     const result = await insertText("dictated text", { enterMode: true },
-      { osascript: osa, clipboard: clip, sleep: noSleep });
+      { osascript: osa, clipboard: clip, sleep: noSleep, openDraft });
 
     assert.equal(result.clipboardFallback, false);
     assert.equal(result.editability, "not_editable");
     assert.equal(result.openedDraft, true);
-    assert.equal(result.draftApp, "TextEdit");
-    assert.equal(osa.textEditDrafts(), 1);
-    assert.equal(osa.currentTargetPastes(), 0);
-    assert.equal(osa.pastes(), 1);
+    assert.equal(result.draftApp, "Scratchpad");
+    assert.deepEqual(openDraft.texts, ["dictated text"]);
+    assert.equal(osa.pastes(), 0);
     assert.equal(osa.enters(), 0);
     assert.equal(clip.current, "dictated text");
   });
@@ -147,21 +150,21 @@ describe("insertText — non-editable target", () => {
     assert.equal(result.clipboardFallback, true);
     assert.equal(result.editability, "unknown");
     assert.equal(result.openedDraft, false);
-    assert.equal(osa.textEditDrafts(), 0);
-    assert.equal(osa.currentTargetPastes(), 1);
+    assert.equal(osa.pastes(), 1);
     assert.equal(osa.enters(), 0);
     assert.equal(clip.current, "dictated text");
   });
 
-  test("no focused element opens a new TextEdit draft", async () => {
+  test("no focused element opens the disposable scratchpad", async () => {
     const clip = fakeClipboard("OLD");
     const osa = fakeOsascript("NO_FOCUS|false");
+    const openDraft = fakeDraftOpener();
     const result = await insertText("t", {},
-      { osascript: osa, clipboard: clip, sleep: noSleep });
+      { osascript: osa, clipboard: clip, sleep: noSleep, openDraft });
     assert.equal(result.clipboardFallback, false);
     assert.equal(result.editability, "no_focus");
     assert.equal(result.openedDraft, true);
-    assert.equal(osa.textEditDrafts(), 1);
+    assert.deepEqual(openDraft.texts, ["t"]);
     assert.equal(clip.current, "t");
   });
 });

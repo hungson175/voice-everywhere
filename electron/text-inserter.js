@@ -4,7 +4,7 @@
  * 1. Check via Accessibility whether the focused element is editable
  * 2. Set clipboard to the transcript
  * 3. Confirmed editable: Cmd+V, optionally press Enter, restore clipboard
- * 4. Confirmed non-editable/no focus: open a new TextEdit draft and paste
+ * 4. Confirmed non-editable/no focus: open the disposable app scratchpad
  * 5. Unknown Accessibility state: try Cmd+V and keep the transcript on the
  *    clipboard so it is never lost
  *
@@ -52,19 +52,6 @@ tell application "System Events"
   end try
 end tell`;
 
-const OPEN_TEXTEDIT_DRAFT = `
-tell application "TextEdit"
-  activate
-  make new document
-end tell
-delay 0.35
-tell application "System Events"
-  tell process "TextEdit"
-    set frontmost to true
-  end tell
-  keystroke "v" using command down
-end tell`;
-
 /**
  * Classify the raw "ROLE|settable" output of the AX check script.
  * @param {string} axOutput
@@ -102,7 +89,7 @@ async function checkFocusedEditable(deps = {}) {
  * @param {string} text - Text to insert
  * @param {object} [options]
  * @param {boolean} [options.enterMode] - Press Enter after paste to submit
- * @param {object} [deps] - test injection: { osascript, clipboard, sleep }
+ * @param {object} [deps] - injected services: { osascript, clipboard, sleep, openDraft }
  * @returns {Promise<{
  *   editability: string,
  *   clipboardFallback: boolean,
@@ -126,13 +113,15 @@ async function insertText(text, options = {}, deps = {}) {
   clip.writeText(text);
 
   if (shouldOpenDraft) {
-    await run(OPEN_TEXTEDIT_DRAFT);
-    await wait(text.length > 200 ? 700 : 200);
+    if (typeof deps.openDraft !== "function") {
+      throw new Error("Scratchpad opener is not configured");
+    }
+    const draft = await deps.openDraft(text);
     return {
       editability,
       clipboardFallback: false,
       openedDraft: true,
-      draftApp: "TextEdit",
+      draftApp: draft?.draftApp || "Scratchpad",
     };
   }
 
