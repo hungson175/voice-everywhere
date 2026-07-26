@@ -6,15 +6,26 @@ function updateCharacterCount() {
   characterCount.textContent = `${count.toLocaleString()} ${count === 1 ? "character" : "characters"}`;
 }
 
-function setText(text) {
-  editor.value = String(text ?? "");
+function setText(update) {
+  const isEditorFocused =
+    document.hasFocus() && document.activeElement === editor;
+  const result = window.scratchpadModel.applyScratchpadUpdate(
+    editor.value,
+    editor.selectionStart,
+    editor.selectionEnd,
+    update,
+    isEditorFocused
+  );
+
+  editor.value = result.value;
   updateCharacterCount();
 
   requestAnimationFrame(() => {
     editor.focus();
-    const end = editor.value.length;
-    editor.setSelectionRange(end, end);
-    editor.scrollTop = editor.scrollHeight;
+    editor.setSelectionRange(result.selectionStart, result.selectionEnd);
+    if (!result.inserted) {
+      editor.scrollTop = editor.scrollHeight;
+    }
   });
 }
 

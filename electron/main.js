@@ -14,6 +14,7 @@ const fs = require("fs");
 
 const textInserter = require("./text-inserter");
 const credentials = require("./credentials");
+const { createScratchpadUpdate } = require("../ui/scratchpad-model");
 
 // --- PATH fix for packaged app (Finder doesn't inherit shell PATH) ---
 if (app.isPackaged) {
@@ -99,7 +100,11 @@ async function openScratchpad(text) {
     throw new Error("Scratchpad closed before it was ready");
   }
 
-  win.webContents.send("scratchpad-text", text);
+  // Snapshot focus before showing the window. The renderer also verifies that
+  // the textarea itself is active, so a transcript is inserted at its current
+  // caret only when the user is actually editing the existing scratchpad.
+  const update = createScratchpadUpdate(text, win.isFocused());
+  win.webContents.send("scratchpad-text", update);
   if (win.isMinimized()) win.restore();
   win.show();
   win.focus();
