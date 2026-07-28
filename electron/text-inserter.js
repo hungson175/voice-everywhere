@@ -5,8 +5,8 @@
  * 2. Set clipboard to the transcript
  * 3. Confirmed editable: Cmd+V, optionally press Enter, restore clipboard
  * 4. Confirmed non-editable/no focus: open the disposable app scratchpad
- * 5. Unknown Accessibility state: try Cmd+V and keep the transcript on the
- *    clipboard so it is never lost
+ * 5. Unknown Accessibility state after a retry: open the scratchpad and keep
+ *    the transcript on the clipboard so manual paste is never required
  *
  * Requires macOS Accessibility permission.
  */
@@ -22,6 +22,9 @@ const EDITABLE_ROLES = new Set([
   "AXSearchField",
   "AXComboBox",
 ]);
+
+const AX_CHECK_ATTEMPTS = 2;
+const AX_RETRY_DELAY_MS = 100;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -71,17 +74,30 @@ function parseEditability(axOutput) {
 
 /**
  * Check whether the focused element in the frontmost app is text-editable.
- * @param {object} [deps] - test injection: { osascript }
+ * @param {object} [deps] - test injection: { osascript, sleep }
  * @returns {Promise<"editable"|"not_editable"|"no_focus"|"unknown">}
  */
 async function checkFocusedEditable(deps = {}) {
   const run = deps.osascript || osascript;
-  try {
-    return parseEditability(await run(AX_EDITABLE_CHECK));
-  } catch (err) {
-    console.error("AX editability check failed:", err.message);
-    return "unknown";
+  const wait = deps.sleep || sleep;
+  let lastFailure = null;
+
+  for (let attempt = 0; attempt < AX_CHECK_ATTEMPTS; attempt += 1) {
+    try {
+      const editability = parseEditability(await run(AX_EDITABLE_CHECK));
+      if (editability !== "unknown") return editability;
+      lastFailure = new Error("unexpected Accessibility response");
+    } catch (err) {
+      lastFailure = err;
+    }
+
+    if (attempt < AX_CHECK_ATTEMPTS - 1) {
+      await wait(AX_RETRY_DELAY_MS);
+    }
   }
+
+  console.error("AX editability check failed:", lastFailure?.message || "unknown error");
+  return "unknown";
 }
 
 /**
@@ -96,8 +112,7 @@ async function checkFocusedEditable(deps = {}) {
  *   openedDraft: boolean,
  *   draftApp?: string
  * }>}
- *   clipboardFallback=true means the text was left on the clipboard
- *   because Accessibility was uncertain and Enter was NOT pressed.
+ *   clipboardFallback=true is reserved for a last-resort insertion failure.
  */
 async function insertText(text, options = {}, deps = {}) {
   const run = deps.osascript || osascript;
@@ -106,8 +121,7 @@ async function insertText(text, options = {}, deps = {}) {
 
   const editability = await checkFocusedEditable(deps);
   const confirmedEditable = editability === "editable";
-  const shouldOpenDraft =
-    editability === "not_editable" || editability === "no_focus";
+  const shouldOpenDraft = !confirmedEditable;
   const savedClipboard = clip.readText();
 
   clip.writeText(text);
@@ -125,26 +139,20 @@ async function insertText(text, options = {}, deps = {}) {
     };
   }
 
-  // For an unknown AX state, still try the current target and preserve the
-  // transcript on the clipboard as a safety net.
   await run('tell application "System Events" to keystroke "v" using command down');
 
   // Extra delay for long text so the app finishes processing input buffer
   await wait(text.length > 200 ? 700 : 200);
 
-  // Enter mode: only when confirmed editable — on an unknown target Enter
-  // could trigger a default button instead of submitting text.
-  if (options.enterMode && confirmedEditable) {
+  if (options.enterMode) {
     await run('tell application "System Events" to key code 36');
   }
 
   await wait(100);
-  if (confirmedEditable) {
-    clip.writeText(savedClipboard);
-  }
+  clip.writeText(savedClipboard);
   return {
     editability,
-    clipboardFallback: !confirmedEditable,
+    clipboardFallback: false,
     openedDraft: false,
   };
 }

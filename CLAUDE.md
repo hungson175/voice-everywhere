@@ -7,17 +7,6 @@ Global voice input app for macOS. Speech-to-text → insert text at cursor posit
 **Pipeline code**: Reference voice-vs-extension (`/Users/sonph36/tools/voice-vs-extension`) — nearly identical logic, adapt as needed for standalone Electron context.
 **UI/UX**: Reference voice-terminal (`/Users/sonph36/tools/voice-terminal`) — same menubar app pattern, but discard terminal-specific features.
 
-## OpenWiki
-
-This repository has documentation located in the /openwiki directory.
-
-Start here:
-- [OpenWiki quickstart](openwiki/quickstart.md)
-
-OpenWiki includes repository overview, architecture notes, workflows, domain concepts, operations, integrations, testing guidance, and source maps.
-
-When working in this repository, read the OpenWiki quickstart first, then follow its links to the relevant architecture, workflow, domain, operation, and testing notes.
-
 ## Commands
 
 ```bash
@@ -58,7 +47,7 @@ Read [lt-memory/architecture.md](lt-memory/architecture.md) for full details, si
 - Soniox native translation returns original and translated tokens in one stream; separate them using `translation_status` or text will be duplicated.
 - Build: Must use `CSC_IDENTITY_AUTO_DISCOVERY=false` — without it, electron-builder hangs on code signing.
 - Resend button was removed — clicking UI buttons steals focus from the target app, defeating the purpose of text insertion. Only non-focus-stealing actions (copy to clipboard) belong in the UI.
-- Text insertion contract: a confirmed editable AX target receives Cmd+V and the old clipboard is restored. A confirmed non-editable target or no focused element opens the disposable in-app scratchpad, while keeping the transcript on the clipboard. Closing the scratchpad never saves or creates a file. If the AX check itself is uncertain, the app tries the current target and keeps the transcript on the clipboard (orange fallback state). Enter-mode runs only on confirmed editable targets.
+- Text insertion contract: a confirmed editable AX target receives Cmd+V and the old clipboard is restored. A confirmed non-editable target, no focused element, or AX result that remains uncertain after one retry opens the disposable in-app scratchpad while keeping the transcript on the clipboard. Closing the scratchpad never saves or creates a file. Enter-mode runs only on confirmed editable targets.
 
 Read [lt-memory/pitfalls.md](lt-memory/pitfalls.md) before modifying tricky areas.
 

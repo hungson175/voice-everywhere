@@ -33,18 +33,21 @@ function fakeClipboard(initial = "") {
   };
 }
 
-/** osascript double: returns axResult for the AX check, records keystrokes. */
+/** osascript double: returns axResult(s) for AX checks, records keystrokes. */
 function fakeOsascript(axResult) {
   const calls = [];
+  const axResults = Array.isArray(axResult) ? [...axResult] : [axResult];
   const fn = async (script) => {
     calls.push(script);
     if (script.includes("AXFocusedUIElement")) {
-      if (axResult instanceof Error) throw axResult;
-      return axResult;
+      const result = axResults.length > 1 ? axResults.shift() : axResults[0];
+      if (result instanceof Error) throw result;
+      return result;
     }
     return "";
   };
   fn.calls = calls;
+  fn.checks = () => calls.filter((s) => s.includes("AXFocusedUIElement")).length;
   fn.pastes = () => calls.filter((s) => s.includes('keystroke "v"')).length;
   fn.enters = () => calls.filter((s) => s.includes("key code 36")).length;
   return fn;
@@ -140,17 +143,35 @@ describe("insertText — non-editable target", () => {
     assert.equal(clip.current, "dictated text");
   });
 
-  test("AX check failure falls back safely (unknown)", async () => {
+  test("retries a transient AX failure before classifying the target", async () => {
+    const osa = fakeOsascript([
+      new Error("temporary osascript failure"),
+      "AXButton|false",
+    ]);
+
+    const result = await checkFocusedEditable({
+      osascript: osa,
+      sleep: noSleep,
+    });
+
+    assert.equal(result, "not_editable");
+    assert.equal(osa.checks(), 2);
+  });
+
+  test("persistent AX uncertainty opens Scratchpad instead of requiring manual paste", async () => {
     const clip = fakeClipboard("OLD CLIPBOARD");
     const osa = fakeOsascript(new Error("osascript timed out"));
+    const openDraft = fakeDraftOpener();
 
     const result = await insertText("dictated text", { enterMode: true },
-      { osascript: osa, clipboard: clip, sleep: noSleep });
+      { osascript: osa, clipboard: clip, sleep: noSleep, openDraft });
 
-    assert.equal(result.clipboardFallback, true);
+    assert.equal(result.clipboardFallback, false);
     assert.equal(result.editability, "unknown");
-    assert.equal(result.openedDraft, false);
-    assert.equal(osa.pastes(), 1);
+    assert.equal(result.openedDraft, true);
+    assert.deepEqual(openDraft.texts, ["dictated text"]);
+    assert.equal(osa.checks(), 2);
+    assert.equal(osa.pastes(), 0);
     assert.equal(osa.enters(), 0);
     assert.equal(clip.current, "dictated text");
   });
