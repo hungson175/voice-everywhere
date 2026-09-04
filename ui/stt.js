@@ -22,6 +22,7 @@ class SonioxSTT {
     this.onTranscript = null; // (fullTranscript, finalTranscript, hasFinal) => void
     this.onError = null; // (error) => void
     this.sonioxConfig = null; // loaded from config.json
+    this._connectReject = null; // settle fn for the in-flight connect await
   }
 
   /**
@@ -86,21 +87,42 @@ class SonioxSTT {
     // Connect to Soniox WebSocket
     console.log("[stt] Connecting to", cfg.ws_url);
     this.ws = new WebSocket(cfg.ws_url);
+    const pendingWs = this.ws;
 
     await new Promise((resolve, reject) => {
       const timeout = setTimeout(
         () => reject(new Error("Soniox connection timeout")),
         10000
       );
-      this.ws.onopen = () => {
+      const settle = () => {
         clearTimeout(timeout);
+        this._connectReject = null;
+      };
+      // stop() calls this to fail fast instead of hanging until timeout/open.
+      this._connectReject = (err) => {
+        settle();
+        reject(err);
+      };
+      pendingWs.onopen = () => {
+        settle();
         resolve();
       };
-      this.ws.onerror = () => {
-        clearTimeout(timeout);
+      pendingWs.onerror = () => {
+        settle();
         reject(new Error("Soniox connection failed"));
       };
     });
+
+    // Stopped (or restarted) while connecting — close the orphaned socket
+    // and abort instead of resurrecting a session after toggle-off.
+    if (this.ws !== pendingWs) {
+      try {
+        pendingWs.close();
+      } catch {
+        // ignore — socket may already be gone
+      }
+      throw new Error("stopped while connecting");
+    }
 
     console.log("[stt] Connected! Sending config...");
 
@@ -175,6 +197,18 @@ class SonioxSTT {
    * background while new sessions own fresh objects).
    */
   async stop() {
+    // Fail a pending connect await immediately (toggle-off mid-CONNECTING)
+    // instead of leaving start() hanging until timeout/open.
+    if (this._connectReject) {
+      const rejectConnect = this._connectReject;
+      this._connectReject = null;
+      try {
+        rejectConnect(new Error("stopped while connecting"));
+      } catch {
+        // ignore — teardown must never throw
+      }
+    }
+
     // Detach callbacks FIRST so in-flight audio/socket events cannot
     // resurrect the pipeline after teardown begins.
     if (this.processor) {

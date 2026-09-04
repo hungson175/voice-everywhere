@@ -15,6 +15,7 @@ const fs = require("fs");
 const textInserter = require("./text-inserter");
 const credentials = require("./credentials");
 const { createScratchpadUpdate } = require("../ui/scratchpad-model");
+const { hideBarWindow, showBarWindow } = require("./bar-visibility");
 
 // --- PATH fix for packaged app (Finder doesn't inherit shell PATH) ---
 if (app.isPackaged) {
@@ -161,6 +162,9 @@ app.on("ready", () => {
   });
 
   // --- Settings window (focusable, for API keys / settings) ---
+  // Hidden at boot (show:false) + backgroundThrottling: Chromium throttles
+  // hidden renderers, so the Google Fonts fetch is one-time network, ~0 idle
+  // CPU. Eager load keeps tray-click response instant.
   settingsWin = new BrowserWindow({
     width: 360,
     height: 560,
@@ -171,6 +175,7 @@ app.on("ready", () => {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
+      backgroundThrottling: true,
     },
   });
 
@@ -205,11 +210,13 @@ app.on("ready", () => {
     hasShadow: false,
     resizable: false,
     skipTaskbar: true,
+    show: false,
     visibleOnAllWorkspaces: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
+      backgroundThrottling: true,
     },
   });
 
@@ -217,9 +224,12 @@ app.on("ready", () => {
   barWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   barWin.setIgnoreMouseEvents(true, { forward: true });
 
-  // Start shown but visually hidden (CSS handles opacity) —
-  // keeping the window "shown" is required for setVisibleOnAllWorkspaces to persist across spaces.
-  barWin.showInactive();
+  // Start REALLY hidden (not showInactive + CSS opacity): a transparent
+  // always-on-top window with backdrop-filter:blur keeps the compositor/GPU
+  // working 24/7 even at opacity 0. hideBarWindow() drops that cost to ~0
+  // while the mic is off; show-bar re-shows via showInactive() +
+  // setVisibleOnAllWorkspaces so cross-Spaces pinning survives.
+  hideBarWindow(barWin);
 
   // Global shortcut: Ctrl+Option+Cmd+V to toggle mic
   globalShortcut.register("Control+Option+Command+V", () => {
@@ -239,15 +249,13 @@ app.on("activate", () => {
   if (settingsWin) settingsWin.show();
 });
 
-// --- IPC: Bar window control ---
+// --- IPC: Bar window control (real hide/show for near-0 idle CPU/GPU) ---
 ipcMain.on("show-bar", () => {
-  // Window is always shown — CSS handles visibility (opacity/pointer-events).
-  // No-op; kept for IPC compatibility.
+  if (barWin && !barWin.isDestroyed()) showBarWindow(barWin);
 });
 
 ipcMain.on("hide-bar", () => {
-  // Don't actually hide — the bar CSS handles visibility (opacity 0, pointer-events none).
-  // Keeping the window shown avoids breaking setVisibleOnAllWorkspaces across spaces.
+  if (barWin && !barWin.isDestroyed()) hideBarWindow(barWin);
 });
 
 ipcMain.on("set-ignore-mouse", (_event, ignore) => {

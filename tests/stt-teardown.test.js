@@ -123,3 +123,98 @@ describe("SonioxSTT.stop() — full teardown, zero idle work", () => {
     await stt.stop();
   });
 });
+
+describe("SonioxSTT.start() — stop mid-connect never resurrects a session", () => {
+  let savedNavigator;
+  let savedAudioContext;
+  let savedWebSocket;
+
+  function installFakes(openSockets) {
+    // NOTE: Node ≥22 ships a read-only global `navigator`; plain assignment
+    // silently fails, so (re)define the globals explicitly.
+    savedNavigator = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+    savedAudioContext = Object.getOwnPropertyDescriptor(globalThis, "AudioContext");
+    savedWebSocket = Object.getOwnPropertyDescriptor(globalThis, "WebSocket");
+
+    Object.defineProperty(globalThis, "navigator", {
+      value: {
+        mediaDevices: {
+          getUserMedia: async () => ({ getTracks: () => [] }),
+        },
+      },
+      configurable: true,
+      writable: true,
+    });
+    globalThis.AudioContext = function () {      return {
+        sampleRate: 16000,
+        destination: {},
+        createMediaStreamSource: () => ({
+          connect() {},
+          disconnect() {},
+        }),
+        createAnalyser: () => ({ fftSize: 0 }),
+        createScriptProcessor: () => ({
+          connect() {},
+          disconnect() {},
+          onaudioprocess: null,
+        }),
+        async close() {},
+      };
+    };
+    globalThis.WebSocket = class {
+      static OPEN = 1;
+      constructor() {
+        this.readyState = 0;
+        this.closed = false;
+        this.sent = [];
+        openSockets.push(this);
+      }
+      send(d) { this.sent.push(d); }
+      close() { this.closed = true; }
+      open() {
+        this.readyState = 1;
+        this.onopen?.();
+      }
+    };
+  }
+
+  function restoreFakes() {
+    for (const [key, desc] of [
+      ["navigator", savedNavigator],
+      ["AudioContext", savedAudioContext],
+      ["WebSocket", savedWebSocket],
+    ]) {
+      if (desc === undefined) delete globalThis[key];
+      else Object.defineProperty(globalThis, key, desc);
+    }
+  }
+
+  test("a late WebSocket open after stop() aborts instead of streaming", async () => {
+    const openSockets = [];
+    installFakes(openSockets);
+    try {
+      const stt = new SonioxSTT();
+      stt.setConfig({
+        model: "stt-rt-v5",
+        sample_rate: 16000,
+        num_channels: 1,
+        audio_format: "pcm_s16le",
+        ws_url: "wss://example.invalid",
+      });
+      const started = stt.start("test-key", {});
+      // Let start() run until it is awaiting the socket open.
+      await new Promise((r) => setImmediate(r));
+      await new Promise((r) => setImmediate(r));
+      assert.equal(openSockets.length, 1);
+      await stt.stop(); // user toggles off mid-CONNECTING
+      openSockets[0].open(); // server (late) accepts the orphaned socket
+      await assert.rejects(started, /stopped while connecting/);
+      assert.equal(stt.ws, null, "late open resurrected the socket after stop");
+      assert.equal(stt.audioContext, null);
+      assert.equal(stt.stream, null);
+      assert.equal(stt.processor, null);
+    } finally {
+      restoreFakes();
+    }
+  });
+});
