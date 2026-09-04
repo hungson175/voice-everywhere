@@ -44,11 +44,21 @@ function getCredentials() {
   const store = readStore();
   return {
     sonioxKey: store.sonioxKey || "",
+    deepseekKey: store.deepseekKey || "",
   };
 }
 
-function saveCredentials(sonioxKey) {
-  writeStore({ sonioxKey });
+function saveCredentials(sonioxKey, deepseekKey) {
+  const store = readStore();
+  if (sonioxKey !== undefined) store.sonioxKey = sonioxKey;
+  if (deepseekKey !== undefined) store.deepseekKey = deepseekKey;
+  writeStore(store);
+}
+
+function saveDeepseekKey(deepseekKey) {
+  const store = readStore();
+  store.deepseekKey = deepseekKey;
+  writeStore(store);
 }
 
 function removeLegacyGeminiKey() {
@@ -64,4 +74,4 @@ function clearCredentials() {
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 }
 
-module.exports = { hasCredentials, getCredentials, saveCredentials, removeLegacyGeminiKey, clearCredentials };
+module.exports = { hasCredentials, getCredentials, saveCredentials, saveDeepseekKey, removeLegacyGeminiKey, clearCredentials };

@@ -122,6 +122,35 @@ outputLangSelect.addEventListener("change", () => {
   localStorage.setItem("outputLang", outputLangSelect.value);
 });
 
+// Clean Mode (default OFF, persisted in localStorage)
+const cleanModeToggle = document.getElementById("clean-mode-toggle");
+cleanModeToggle.checked = localStorage.getItem("cleanMode") === "true";
+cleanModeToggle.addEventListener("change", () => {
+  localStorage.setItem("cleanMode", cleanModeToggle.checked);
+});
+
+// DeepSeek API key for Clean Mode (stored in local credentials file via main)
+const deepseekKeyInput = document.getElementById("deepseek-key-input");
+let deepseekKeyDirty = false;
+deepseekKeyInput.addEventListener("input", () => {
+  deepseekKeyDirty = true;
+});
+deepseekKeyInput.addEventListener("change", async () => {
+  if (!deepseekKeyDirty) return;
+  deepseekKeyDirty = false;
+  const key = deepseekKeyInput.value.trim();
+  try {
+    await window.voiceEverywhere.saveDeepseekKey(key);
+    deepseekKeyInput.value = "";
+    deepseekKeyInput.placeholder = key ? "Saved" : "Not set";
+  } catch (err) {
+    deepseekKeyInput.placeholder = "Save failed";
+  }
+});
+window.voiceEverywhere.getDeepseekKey().then((key) => {
+  if (key) deepseekKeyInput.placeholder = "Saved (hidden)";
+}).catch(() => {});
+
 // Reset API keys
 document.getElementById("reset-keys-btn").addEventListener("click", () => {
   window.voiceEverywhere.resetCredentials();

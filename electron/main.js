@@ -39,13 +39,16 @@ function loadApiKeys() {
   credentials.removeLegacyGeminiKey();
   const creds = credentials.getCredentials();
   if (creds.sonioxKey) process.env.SONIOX_API_KEY = creds.sonioxKey;
+  if (creds.deepseekKey) process.env.DEEPSEEK_API_KEY = creds.deepseekKey;
 }
 
 loadApiKeys();
 
 // Log which keys are loaded (redacted) for debugging
 const sonK = process.env.SONIOX_API_KEY || "";
+const dsK = process.env.DEEPSEEK_API_KEY || "";
 console.log(`[keys] Soniox: ${sonK ? sonK.slice(0, 8) + "..." + sonK.slice(-4) : "NOT SET"}`);
+console.log(`[keys] DeepSeek: ${dsK ? dsK.slice(0, 8) + "..." + dsK.slice(-4) : "NOT SET"}`);
 
 // --- Determine which page to show for settings ---
 function getSettingsStartUrl() {
@@ -279,12 +282,21 @@ ipcMain.on("show-settings", () => {
 });
 
 // --- IPC: Save credentials from setup page, then reload to main UI ---
-ipcMain.handle("save-credentials", async (_event, { sonioxKey }) => {
-  credentials.saveCredentials(sonioxKey);
-  process.env.SONIOX_API_KEY = sonioxKey;
+ipcMain.handle("save-credentials", async (_event, { sonioxKey, deepseekKey }) => {
+  credentials.saveCredentials(sonioxKey, deepseekKey);
+  if (sonioxKey) process.env.SONIOX_API_KEY = sonioxKey;
+  if (deepseekKey) process.env.DEEPSEEK_API_KEY = deepseekKey;
   settingsWin.loadURL(
     `file://${path.join(__dirname, "..", "ui", "index.html")}`
   );
+});
+
+// --- IPC: Save DeepSeek key from settings (Clean Mode), no page reload ---
+ipcMain.handle("save-deepseek-key", async (_event, { deepseekKey }) => {
+  credentials.saveDeepseekKey(deepseekKey || "");
+  if (deepseekKey) process.env.DEEPSEEK_API_KEY = deepseekKey;
+  else delete process.env.DEEPSEEK_API_KEY;
+  return { success: true };
 });
 
 // --- IPC: Reset credentials, go back to setup ---
@@ -341,4 +353,9 @@ ipcMain.handle("insert-text", async (_event, { text, enterMode }) => {
 // Provide Soniox API key to renderer
 ipcMain.handle("get-soniox-key", async () => {
   return process.env.SONIOX_API_KEY || "";
+});
+
+// Provide DeepSeek API key to renderer (Clean Mode)
+ipcMain.handle("get-deepseek-key", async () => {
+  return process.env.DEEPSEEK_API_KEY || "";
 });

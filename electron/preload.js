@@ -10,12 +10,17 @@ contextBridge.exposeInMainWorld("voiceEverywhere", {
   // Soniox API key (for direct WebSocket from renderer)
   getSonioxKey: () => ipcRenderer.invoke("get-soniox-key"),
 
+  // DeepSeek API key (for Clean Mode rewrite from the bar renderer)
+  getDeepseekKey: () => ipcRenderer.invoke("get-deepseek-key"),
+  saveDeepseekKey: (deepseekKey) =>
+    ipcRenderer.invoke("save-deepseek-key", { deepseekKey }),
+
   // Config
   getConfig: () => ipcRenderer.invoke("get-config"),
 
-  // Setup: save Soniox credentials
-  saveCredentials: (sonioxKey) =>
-    ipcRenderer.invoke("save-credentials", { sonioxKey }),
+  // Setup: save Soniox credentials (+ optional DeepSeek key for Clean Mode)
+  saveCredentials: (sonioxKey, deepseekKey) =>
+    ipcRenderer.invoke("save-credentials", { sonioxKey, deepseekKey }),
 
   // Reset API keys (back to setup)
   resetCredentials: () => ipcRenderer.invoke("reset-credentials"),
