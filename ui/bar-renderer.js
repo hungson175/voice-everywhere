@@ -423,7 +423,7 @@ async function maybeRewriteTranscript(text, myGen) {
   if (myGen !== cmdGen) return null;
   if (!deepseekKey) {
     console.warn("DeepSeek post-step wanted but no key is set — using original text");
-    setState("PROCESSING", "DeepSeek: no key — using original…");
+    setState("PROCESSING", "No AI key — using original…");
     await new Promise((r) => setTimeout(r, 600));
     return text;
   }
