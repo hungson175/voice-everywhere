@@ -12,6 +12,7 @@ class SonioxSTT {
   constructor() {
     this.ws = null;
     this.audioContext = null;
+    this.source = null;
     this.processor = null;
     this.analyser = null;
     this.stream = null;
@@ -46,6 +47,12 @@ class SonioxSTT {
     this.translationTranscript = "";
     this.translationEnabled = !!sessionOptions.translation;
 
+    // Clean up any stale session first (rapid toggle safety). stop() nulls
+    // handles synchronously so the fresh pipeline below owns new objects.
+    if (this.ws || this.stream || this.audioContext) {
+      await this.stop();
+    }
+
     // Get microphone
     console.log("[stt] Requesting mic...");
     this.stream = await navigator.mediaDevices.getUserMedia({
@@ -60,6 +67,7 @@ class SonioxSTT {
     // Set up Web Audio pipeline
     this.audioContext = new AudioContext({ sampleRate: cfg.sample_rate });
     const source = this.audioContext.createMediaStreamSource(this.stream);
+    this.source = source;
 
     // AnalyserNode for waveform visualization
     this.analyser = this.audioContext.createAnalyser();
@@ -155,28 +163,85 @@ class SonioxSTT {
   }
 
   /**
-   * Stop mic and disconnect.
+   * Stop mic and disconnect. Fully tears down the pipeline so idle CPU/GPU
+   * is ~0: disconnects the MediaStreamSource + analyser + processor nodes,
+   * clears onaudioprocess and WebSocket handlers (a late close/error can
+   * never call back into the app), stops ALL getUserMedia tracks, closes
+   * the socket cleanly, and awaits audioContext.close().
+   *
+   * Idempotent: handles are nulled synchronously, so concurrent/double
+   * stops and rapid start→stop→start races close nothing twice. Async but
+   * safe to call without await (teardown of captured refs continues in the
+   * background while new sessions own fresh objects).
    */
-  stop() {
-    if (this.analyser) {
-      this.analyser.disconnect();
-      this.analyser = null;
-    }
+  async stop() {
+    // Detach callbacks FIRST so in-flight audio/socket events cannot
+    // resurrect the pipeline after teardown begins.
     if (this.processor) {
-      this.processor.disconnect();
-      this.processor = null;
-    }
-    if (this.audioContext) {
-      this.audioContext.close();
-      this.audioContext = null;
-    }
-    if (this.stream) {
-      this.stream.getTracks().forEach((t) => t.stop());
-      this.stream = null;
+      try {
+        this.processor.onaudioprocess = null;
+      } catch {
+        // ignore — teardown must never throw
+      }
     }
     if (this.ws) {
-      this.ws.close();
-      this.ws = null;
+      try {
+        this.ws.onmessage = null;
+        this.ws.onerror = null;
+        this.ws.onclose = null;
+      } catch {
+        // ignore — teardown must never throw
+      }
+    }
+
+    // Capture then null synchronously: makes stop idempotent and makes a
+    // concurrent start's fresh handles immune to this teardown.
+    const source = this.source;
+    const analyser = this.analyser;
+    const processor = this.processor;
+    const audioContext = this.audioContext;
+    const stream = this.stream;
+    const ws = this.ws;
+    this.source = null;
+    this.analyser = null;
+    this.processor = null;
+    this.audioContext = null;
+    this.stream = null;
+    this.ws = null;
+
+    for (const node of [source, analyser, processor]) {
+      try {
+        if (node && typeof node.disconnect === "function") node.disconnect();
+      } catch {
+        // ignore — best-effort node teardown
+      }
+    }
+    if (stream) {
+      try {
+        stream.getTracks().forEach((t) => {
+          try {
+            t.stop();
+          } catch {
+            // ignore — one bad track must not spare the rest
+          }
+        });
+      } catch {
+        // ignore — a broken stream object must not abort teardown
+      }
+    }
+    if (ws) {
+      try {
+        ws.close();
+      } catch {
+        // ignore — socket may already be gone
+      }
+    }
+    if (audioContext) {
+      try {
+        await audioContext.close();
+      } catch {
+        // ignore — context may already be closed
+      }
     }
   }
 
