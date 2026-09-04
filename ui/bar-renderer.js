@@ -99,6 +99,15 @@ const closeBtn = document.getElementById("close-btn");
 const stt = new SonioxSTT();
 let detector = null;
 
+// --- Idle-CPU lifecycle (ui/audio-lifecycle.js, loaded via bar.html) ---
+// Single rAF chain (no stacking across SUCCESS/ERROR auto-timers), named
+// timers cleared on every stop, one shared AudioContext for beeps, and a
+// generation guard so toggle-off mid-CONNECTING can't resurrect LISTENING.
+const waveformLoop = new AudioLifecycle.WaveformLoop();
+const timers = new AudioLifecycle.TimerRegistry();
+const sharedAudio = new AudioLifecycle.SharedAudio();
+const startGen = new AudioLifecycle.Generation();
+
 // --- State ---
 let state = "HIDDEN"; // HIDDEN, CONNECTING, LISTENING, PROCESSING, INSERTING, SUCCESS, ERROR
 let cmdGen = 0; // bumped on stop; invalidates in-flight handleCommandDetected() runs
@@ -107,9 +116,6 @@ let sonioxTerms = [];
 let sonioxTranslationTerms = [];
 let pendingTranslation = null;
 let activeTranslation = null;
-let waveformAnimId = null;
-let autoHideTimer = null;
-let reminderTimer = null;
 
 // --- Settings from localStorage (shared with settings window) ---
 function loadSettings() {
@@ -141,8 +147,10 @@ function setState(newState, message) {
 
   if (newState === "HIDDEN") {
     bar.classList.add("hidden");
+    timers.clear("autoHide"); // a pending SUCCESS/ERROR return must not pop the bar back up
     stopWaveform();
-    window.voiceEverywhere.hideBar();
+    sharedAudio.suspendIdle(); // quiet the shared beep context while off
+    window.voiceEverywhere.hideBar(); // really hides the window (near-0 CPU/GPU)
     return;
   }
 
@@ -153,17 +161,17 @@ function setState(newState, message) {
     setTranscriptStatus(message, newState.toLowerCase());
   }
 
-  // After success/error, return to LISTENING (keep bar visible, STT still running)
-  if (autoHideTimer) { clearTimeout(autoHideTimer); autoHideTimer = null; }
+  // After success/error, return to LISTENING (keep bar visible, STT still running).
+  // TimerRegistry replaces any pending timer — auto-transitions never stack.
   if (newState === "SUCCESS" || newState === "CLIPBOARD") {
-    autoHideTimer = setTimeout(() => {
+    timers.setTimeout("autoHide", () => {
       stt.resetTranscript();
       setState("LISTENING");
       transcriptEl.textContent = "";
       startWaveform();
     }, newState === "CLIPBOARD" ? 3000 : 1500);
   } else if (newState === "ERROR") {
-    autoHideTimer = setTimeout(() => {
+    timers.setTimeout("autoHide", () => {
       stt.resetTranscript();
       setState("LISTENING");
       transcriptEl.textContent = "";
@@ -187,16 +195,21 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// --- Waveform rendering ---
+// --- Waveform rendering (single rAF chain via WaveformLoop) ---
 function startWaveform() {
   const analyser = stt.getAnalyser();
-  if (!analyser) return;
+  if (!analyser) {
+    waveformLoop.stop();
+    return;
+  }
 
   const bufLen = analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufLen);
 
-  function draw() {
-    waveformAnimId = requestAnimationFrame(draw);
+  // The loop owns scheduling; this renders ONE frame per tick. A second
+  // start() while active is refused, so SUCCESS/ERROR auto-timers can never
+  // stack another 60fps chain and toggle-off cancels the only chain.
+  waveformLoop.start(() => {
     analyser.getByteFrequencyData(dataArray);
 
     const w = waveformCanvas.width;
@@ -221,16 +234,11 @@ function startWaveform() {
       waveformCtx.roundRect(x, y, barW, barH, 1.5);
       waveformCtx.fill();
     }
-  }
-
-  draw();
+  });
 }
 
 function stopWaveform() {
-  if (waveformAnimId) {
-    cancelAnimationFrame(waveformAnimId);
-    waveformAnimId = null;
-  }
+  waveformLoop.stop(); // idempotent — always cancelled when leaving LISTENING/HIDDEN
   waveformCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
 }
 
@@ -262,8 +270,9 @@ async function startListening() {
   if (state === "LISTENING" || state === "CONNECTING") return;
 
   // Cancel any pending auto-transition and clean up any lingering session
-  if (autoHideTimer) { clearTimeout(autoHideTimer); autoHideTimer = null; }
-  stopListening();
+  timers.clear("autoHide");
+  stopListening(); // invalidates generations, clears timers, stops STT/waveform
+  const myStart = startGen.claim(); // stale if a stop lands mid-CONNECTING
 
   loadSettings();
   if (!sonioxKey) {
@@ -272,7 +281,7 @@ async function startListening() {
   }
 
   try {
-    window.voiceEverywhere.showBar();
+    window.voiceEverywhere.showBar(); // really re-shows the hidden window
     setState("CONNECTING", "Connecting...");
     window.voiceEverywhere.setMicState(true);
 
@@ -284,13 +293,20 @@ async function startListening() {
       activeTranslation ? { translation: activeTranslation } : {}
     );
 
+    // Toggled off (or restarted) while connecting — tear down the stale
+    // session instead of resurrecting LISTENING + waveform + reminder.
+    if (!startGen.isCurrent(myStart)) {
+      stt.stop();
+      return;
+    }
+
     setState("LISTENING");
     transcriptEl.textContent = "";
     startWaveform();
 
-    reminderTimer = setInterval(() => beep(660, 0.15, 0.2), 60000);
+    timers.setInterval("reminder", () => beep(660, 0.15, 0.2), 60000);
   } catch (err) {
-    if (state === "HIDDEN") return; // stopped externally while connecting
+    if (!startGen.isCurrent(myStart) || state === "HIDDEN") return; // stopped externally while connecting
     console.error("Failed to start:", err);
     setState("ERROR", "Mic error: " + err.message);
     window.voiceEverywhere.setMicState(false);
@@ -299,17 +315,19 @@ async function startListening() {
 
 function stopListening() {
   cmdGen++; // invalidate any in-flight command so it won't paste after stop
+  startGen.invalidate(); // invalidate any in-flight startListening()
   clearPendingTranslation();
   activeTranslation = null;
   stt.stop();
   stopWaveform();
   window.voiceEverywhere.setMicState(false);
-  if (reminderTimer) { clearInterval(reminderTimer); reminderTimer = null; }
+  timers.clear("reminder");
+  sharedAudio.suspendIdle(); // quiet the shared beep context while off
 }
 
 // --- Transcript handling ---
 function clearPendingTranslation() {
-  if (pendingTranslation?.timer) clearTimeout(pendingTranslation.timer);
+  timers.clear("translation");
   pendingTranslation = null;
 }
 
@@ -323,7 +341,7 @@ function waitForSonioxTranslation(originalCommand, translationFinal) {
   pendingTranslation = {
     originalCommand,
     translationFinal,
-    timer: setTimeout(() => {
+    timer: timers.setTimeout("translation", () => {
       if (!pendingTranslation) return;
       const latestTranslation = pendingTranslation.translationFinal.trim();
       const translatedResult = detector.process(latestTranslation);
@@ -423,19 +441,13 @@ function isAuthError(errMsg) {
     lower.includes("authentication") || lower.includes("api key");
 }
 
-// --- Beep ---
+// --- Beep (shared AudioContext — no brand-new context per call) ---
 function beep(freq, volume, duration) {
-  const ctx = new AudioContext();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.frequency.value = freq;
-  gain.gain.value = volume;
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-  osc.start();
-  osc.stop(ctx.currentTime + duration);
-  osc.onended = () => ctx.close();
+  try {
+    sharedAudio.beep(freq, volume, duration);
+  } catch (err) {
+    console.error("Beep failed:", err);
+  }
 }
 
 // --- Button handlers ---
@@ -462,7 +474,7 @@ window.voiceEverywhere.onToggleMic(() => {
     startListening();
   } else {
     // Stop regardless of state (LISTENING, CONNECTING, PROCESSING, INSERTING, SUCCESS, ERROR)
-    if (autoHideTimer) { clearTimeout(autoHideTimer); autoHideTimer = null; }
+    timers.clear("autoHide");
     stopListening();
     setState("HIDDEN");
   }
