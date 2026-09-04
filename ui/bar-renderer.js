@@ -381,10 +381,18 @@ function handleTranscript(fullTranscript, finalTranscript, hasFinal, streams = {
 async function handleCommandDetected(rawCommand) {
   const myGen = ++cmdGen; // claim this generation; a later stop bumps cmdGen past it
   stt.resetTranscript();
-  const text = rawCommand.trim();
+  let text = rawCommand.trim();
 
   // Cancelled while translating (user toggled off / restarted) — don't paste into whatever is now focused
   if (myGen !== cmdGen) return;
+
+  // Clean Mode: rewrite the raw transcript via LLM before insertion.
+  // Any failure falls back to the raw transcript — the transcript is never lost.
+  if (text && isCleanModeEnabled()) {
+    const rewritten = await maybeRewriteTranscript(text, myGen);
+    if (myGen !== cmdGen) return; // stopped during rewrite — don't paste
+    if (rewritten !== null) text = rewritten;
+  }
 
   // Insert text
   if (text) {
@@ -413,6 +421,61 @@ async function handleCommandDetected(rawCommand) {
   } else {
     stopListening();
     setState("HIDDEN");
+  }
+}
+
+// --- Clean Mode (LLM rewrite before insertion) ---
+function isCleanModeEnabled() {
+  try {
+    return localStorage.getItem(window.CleanMode?.CLEAN_MODE_STORAGE_KEYS?.enabled || "cleanMode") === "true";
+  } catch { return false; }
+}
+
+function getCleanOverrides() {
+  const keys = window.CleanMode?.CLEAN_MODE_STORAGE_KEYS || {};
+  try {
+    return {
+      baseURL: localStorage.getItem(keys.baseURL || "cleanModeBaseURL") || undefined,
+      model: localStorage.getItem(keys.model || "cleanModeModel") || undefined,
+    };
+  } catch { return {}; }
+}
+
+/**
+ * Rewrite via Clean Mode LLM. Always resolves to insertable text (cleaned or
+ * raw fallback); resolves null only when the run was cancelled mid-rewrite.
+ */
+async function maybeRewriteTranscript(text, myGen) {
+  if (!window.CleanMode) {
+    console.error("Clean Mode is ON but clean-mode.js failed to load — using original text");
+    return text;
+  }
+  let deepseekKey = "";
+  try {
+    deepseekKey = await window.voiceEverywhere.getDeepseekKey();
+  } catch (err) {
+    console.error("Clean Mode: could not load DeepSeek key:", err);
+  }
+  if (myGen !== cmdGen) return null;
+  if (!deepseekKey) {
+    console.warn("Clean Mode is ON but no DeepSeek key is set — using original text");
+    setState("PROCESSING", "Clean Mode: no key — using original…");
+    await new Promise((r) => setTimeout(r, 600));
+    return text;
+  }
+  setState("PROCESSING", "Rewriting...");
+  try {
+    const outputLang = localStorage.getItem("outputLang") || "auto";
+    return await window.CleanMode.rewriteTranscript({
+      transcript: text,
+      apiKey: deepseekKey,
+      ...getCleanOverrides(),
+      outputLang,
+      contextTerms: sonioxTerms,
+    });
+  } catch (err) {
+    console.error("Clean Mode rewrite failed, using original text:", err.message || err);
+    return text;
   }
 }
 

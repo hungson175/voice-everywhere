@@ -226,7 +226,8 @@ test("bar.html loads clean-mode.js and CSP allows https API calls", () => {
     "utf8"
   );
   assert.match(html, /clean-mode\.js/);
-  assert.match(html, /connect-src[^>]*https?:/i);
+  // connect-src * (or explicit https:) already permits the rewrite API call
+  assert.match(html, /connect-src[^"]*(\*|https:)/i);
 });
 
 test("settings UI exposes the Clean Mode toggle persisted by renderer.js", () => {
