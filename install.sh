@@ -21,14 +21,21 @@ NEW_APP="dist/mac-arm64/Voice Everywhere.app"
 INSTALLED_APP="/Applications/Voice Everywhere.app"
 
 # Permission-preserving update: macOS TCC (Accessibility/Mic) keys off the
-# main executable's identity. If the Electron binary is unchanged, swap only
+# main executable's identity. If the Electron version is unchanged, swap only
 # the app resources (app.asar + config.json + .env) inside the existing
 # bundle — permissions survive. A full bundle replace (or Electron upgrade)
 # changes the executable identity and forces re-granting permissions.
+#
+# NOTE: we compare via a version receipt, NOT the binary bytes — ad-hoc
+# re-signing modifies the installed binary, so byte-compare always mismatches
+# after the first in-place update and would wrongly trigger full replaces.
+ELECTRON_VERSION="$(node -p "require('./node_modules/electron/package.json').version" 2>/dev/null || echo unknown)"
+RECEIPT="$INSTALLED_APP/Contents/Resources/.install-receipt"
+INSTALLED_VERSION="$(grep -E '^electron=' "$RECEIPT" 2>/dev/null | cut -d= -f2 || echo none)"
 if [ -f "$INSTALLED_APP/Contents/MacOS/Voice Everywhere" ] && \
-   cmp -s "$NEW_APP/Contents/MacOS/Voice Everywhere" \
-          "$INSTALLED_APP/Contents/MacOS/Voice Everywhere"; then
-  echo "Same Electron binary — updating in place (permissions preserved)..."
+   [ "$ELECTRON_VERSION" != "unknown" ] && \
+   [ "$INSTALLED_VERSION" = "$ELECTRON_VERSION" ]; then
+  echo "Same Electron $ELECTRON_VERSION — updating in place (permissions preserved)..."
   cp "$NEW_APP/Contents/Resources/app.asar" \
      "$INSTALLED_APP/Contents/Resources/app.asar"
   cp config.json "$INSTALLED_APP/Contents/Resources/config.json"
@@ -41,7 +48,13 @@ else
   echo "NOTE: macOS will ask for Accessibility/Mic permissions again (one time)."
   rm -rf "$INSTALLED_APP" 2>/dev/null
   cp -R "$NEW_APP" /Applications/
+  if [ -f "$INSTALLED_APP/Contents/Resources/.env" ]; then
+    chmod 600 "$INSTALLED_APP/Contents/Resources/.env"
+  fi
 fi
+
+# Version receipt for the next run's in-place/full decision
+echo "electron=$ELECTRON_VERSION" > "$INSTALLED_APP/Contents/Resources/.install-receipt"
 
 # Ad-hoc sign the full app bundle (required on macOS 15+ / Sequoia and later)
 # Without this, macOS kills the app with SIGKILL (Code Signature Invalid)
