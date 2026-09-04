@@ -22,7 +22,7 @@ npm start                         # Launch Electron app (dev mode, opens DevTool
 ## Architecture
 
 ```
-Mic (Web Audio) → Soniox STT + optional native translation → Stop Word ("thank you") → Insert at cursor
+Mic (Web Audio) → Soniox STT, transcription-only (auto language, whatever was said) → Stop Word ("thank you") → DeepSeek v4-flash post-step (translate to output target language if set + Clean-Mode rewrite) → Insert at cursor
 ```
 
 - **Runtime**: Electron (Tray + BrowserWindow, NOT `menubar` package)

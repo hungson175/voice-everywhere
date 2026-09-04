@@ -89,6 +89,27 @@ function buildCleanMessages({ transcript, outputLang = "auto", contextTerms = []
 }
 
 /**
+ * Decide whether the post-stopword DeepSeek step must run.
+ * Soniox only transcribes whatever was said; DeepSeek owns ALL translation
+ * and cleanup. Runs when Clean Mode is ON (rewrite, keep language) or when
+ * an output target language is set (translate + clean, even with Clean OFF).
+ */
+function shouldPostProcess({ cleanModeEnabled = false, outputLang = "auto" } = {}) {
+  if (cleanModeEnabled) return true;
+  return outputLang === "english" || outputLang === "vietnamese";
+}
+
+/**
+ * Status label for the post-process step: translation takes precedence.
+ */
+function postProcessLabel({ cleanModeEnabled = false, outputLang = "auto" } = {}) {
+  if (outputLang === "english" || outputLang === "vietnamese") {
+    return "Translating...";
+  }
+  return "Rewriting...";
+}
+
+/**
  * Merge user overrides over the defaults (blank strings fall back to defaults).
  * @param {object} [overrides] - { baseURL, model, timeoutMs }
  */
@@ -190,6 +211,8 @@ const CleanMode = {
   buildCleanMessages,
   resolveCleanConfig,
   rewriteTranscript,
+  shouldPostProcess,
+  postProcessLabel,
 };
 
 if (typeof module !== "undefined" && module.exports) {

@@ -114,8 +114,9 @@ let cmdGen = 0; // bumped on stop; invalidates in-flight handleCommandDetected()
 let sonioxKey = "";
 let sonioxTerms = [];
 let sonioxTranslationTerms = [];
-let pendingTranslation = null;
-let activeTranslation = null;
+// NOTE: Soniox is transcription-only (auto language, whatever was said).
+// All translation/cleanup happens AFTER the stop word via DeepSeek
+// (see maybeRewriteTranscript) — Soniox native translation is NOT used.
 
 // --- Settings from localStorage (shared with settings window) ---
 function loadSettings() {
@@ -254,17 +255,6 @@ function buildSonioxContext() {
   };
 }
 
-function getSonioxTranslation() {
-  const outputLang = localStorage.getItem("outputLang") || "auto";
-  if (outputLang === "english") {
-    return { type: "one_way", target_language: "en" };
-  }
-  if (outputLang === "vietnamese") {
-    return { type: "one_way", target_language: "vi" };
-  }
-  return null;
-}
-
 // --- Pipeline ---
 async function startListening() {
   if (state === "LISTENING" || state === "CONNECTING") return;
@@ -286,12 +276,9 @@ async function startListening() {
     window.voiceEverywhere.setMicState(true);
 
     const context = buildSonioxContext();
-    activeTranslation = getSonioxTranslation();
-    await stt.start(
-      sonioxKey,
-      context,
-      activeTranslation ? { translation: activeTranslation } : {}
-    );
+    // Transcription-only: no Soniox translation option. The transcript is
+    // whatever was said; DeepSeek translates/cleans after the stop word.
+    await stt.start(sonioxKey, context);
 
     // Toggled off (or restarted) while connecting — tear down the stale
     // session instead of resurrecting LISTENING + waveform + reminder.
@@ -316,8 +303,6 @@ async function startListening() {
 function stopListening() {
   cmdGen++; // invalidate any in-flight command so it won't paste after stop
   startGen.invalidate(); // invalidate any in-flight startListening()
-  clearPendingTranslation();
-  activeTranslation = null;
   stt.stop();
   stopWaveform();
   window.voiceEverywhere.setMicState(false);
@@ -325,73 +310,17 @@ function stopListening() {
   sharedAudio.suspendIdle(); // quiet the shared beep context while off
 }
 
-// --- Transcript handling ---
-function clearPendingTranslation() {
-  timers.clear("translation");
-  pendingTranslation = null;
-}
-
-function finishPendingTranslation(text) {
-  if (!pendingTranslation) return;
-  clearPendingTranslation();
-  handleCommandDetected(text);
-}
-
-function waitForSonioxTranslation(originalCommand, translationFinal) {
-  pendingTranslation = {
-    originalCommand,
-    translationFinal,
-    timer: timers.setTimeout("translation", () => {
-      if (!pendingTranslation) return;
-      const latestTranslation = pendingTranslation.translationFinal.trim();
-      const translatedResult = detector.process(latestTranslation);
-      const fallbackText = translatedResult.detected
-        ? (translatedResult.command || pendingTranslation.originalCommand)
-        : (latestTranslation || pendingTranslation.originalCommand);
-      finishPendingTranslation(fallbackText);
-    }, 1800),
-  };
-  setState("PROCESSING", "Translating with Soniox...");
-}
-
-function handleTranscript(fullTranscript, finalTranscript, hasFinal, streams = {}) {
-  if (state !== "LISTENING" && !(state === "PROCESSING" && pendingTranslation)) return;
-
-  const originalFinal = streams.originalFinal ?? finalTranscript;
-  const translationFinal = streams.translationFinal || "";
-
-  if (pendingTranslation) {
-    pendingTranslation.translationFinal = translationFinal;
-    const translatedInterim = (streams.translationFull || translationFinal)
-      .slice(translationFinal.length);
-    setTranscriptLive(translationFinal, translatedInterim);
-
-    if (streams.hasTranslationFinal) {
-      const translatedResult = detector.process(translationFinal);
-      if (translatedResult.detected && translatedResult.command) {
-        finishPendingTranslation(translatedResult.command);
-      }
-    }
-    return;
-  }
+// --- Transcript handling (transcription-only: display what was said) ---
+function handleTranscript(fullTranscript, finalTranscript, hasFinal) {
+  if (state !== "LISTENING") return;
 
   const interimPart = fullTranscript.slice(finalTranscript.length);
   setTranscriptLive(finalTranscript, interimPart);
 
-  if (streams.hasOriginalFinal ?? hasFinal) {
-    const result = detector.process(originalFinal);
+  if (hasFinal) {
+    const result = detector.process(finalTranscript);
     if (result.detected && result.command) {
-      if (!activeTranslation) {
-        handleCommandDetected(result.command);
-        return;
-      }
-
-      const translatedResult = detector.process(translationFinal);
-      if (translatedResult.detected && translatedResult.command) {
-        handleCommandDetected(translatedResult.command);
-      } else {
-        waitForSonioxTranslation(result.command, translationFinal);
-      }
+      handleCommandDetected(result.command);
     }
   }
 }
@@ -401,14 +330,15 @@ async function handleCommandDetected(rawCommand) {
   stt.resetTranscript();
   let text = rawCommand.trim();
 
-  // Cancelled while translating (user toggled off / restarted) — don't paste into whatever is now focused
+  // Cancelled while post-processing (user toggled off / restarted) — don't paste into whatever is now focused
   if (myGen !== cmdGen) return;
 
-  // Clean Mode: rewrite the raw transcript via LLM before insertion.
-  // Any failure falls back to the raw transcript — the transcript is never lost.
-  if (text && isCleanModeEnabled()) {
+  // DeepSeek post-step: runs when Clean Mode is ON, or when an output target
+  // language is set (translate + clean). Otherwise the raw transcript goes
+  // straight to insertion. Any failure falls back to raw — never lost.
+  if (text && shouldPostProcessNow()) {
     const rewritten = await maybeRewriteTranscript(text, myGen);
-    if (myGen !== cmdGen) return; // stopped during rewrite — don't paste
+    if (myGen !== cmdGen) return; // stopped during post-process — don't paste
     if (rewritten !== null) text = rewritten;
   }
 
@@ -442,10 +372,24 @@ async function handleCommandDetected(rawCommand) {
   }
 }
 
-// --- Clean Mode (LLM rewrite before insertion) ---
-function isCleanModeEnabled() {
+// --- DeepSeek post-step (translate/clean AFTER the stop word) ---
+// Soniox transcribes whatever was said; this step translates to the output
+// target language (if set) and/or cleans fluency when Clean Mode is ON.
+function getPostProcessSettings() {
+  let cleanModeEnabled = false;
+  let outputLang = "auto";
   try {
-    return localStorage.getItem(window.CleanMode?.CLEAN_MODE_STORAGE_KEYS?.enabled || "cleanMode") === "true";
+    cleanModeEnabled =
+      localStorage.getItem(window.CleanMode?.CLEAN_MODE_STORAGE_KEYS?.enabled || "cleanMode") === "true";
+    outputLang = localStorage.getItem("outputLang") || "auto";
+  } catch { /* private mode etc. — stay raw */ }
+  return { cleanModeEnabled, outputLang };
+}
+
+function shouldPostProcessNow() {
+  if (!window.CleanMode) return false;
+  try {
+    return window.CleanMode.shouldPostProcess(getPostProcessSettings());
   } catch { return false; }
 }
 
@@ -460,39 +404,40 @@ function getCleanOverrides() {
 }
 
 /**
- * Rewrite via Clean Mode LLM. Always resolves to insertable text (cleaned or
- * raw fallback); resolves null only when the run was cancelled mid-rewrite.
+ * Translate/clean via DeepSeek. Always resolves to insertable text (processed
+ * or raw fallback); resolves null only when the run was cancelled mid-flight.
  */
 async function maybeRewriteTranscript(text, myGen) {
+  const settings = getPostProcessSettings();
+  const label = window.CleanMode.postProcessLabel(settings);
   if (!window.CleanMode) {
-    console.error("Clean Mode is ON but clean-mode.js failed to load — using original text");
+    console.error("DeepSeek post-step wanted but clean-mode.js failed to load — using original text");
     return text;
   }
   let deepseekKey = "";
   try {
     deepseekKey = await window.voiceEverywhere.getDeepseekKey();
   } catch (err) {
-    console.error("Clean Mode: could not load DeepSeek key:", err);
+    console.error("DeepSeek post-step: could not load key:", err);
   }
   if (myGen !== cmdGen) return null;
   if (!deepseekKey) {
-    console.warn("Clean Mode is ON but no DeepSeek key is set — using original text");
-    setState("PROCESSING", "Clean Mode: no key — using original…");
+    console.warn("DeepSeek post-step wanted but no key is set — using original text");
+    setState("PROCESSING", "DeepSeek: no key — using original…");
     await new Promise((r) => setTimeout(r, 600));
     return text;
   }
-  setState("PROCESSING", "Rewriting...");
+  setState("PROCESSING", label);
   try {
-    const outputLang = localStorage.getItem("outputLang") || "auto";
     return await window.CleanMode.rewriteTranscript({
       transcript: text,
       apiKey: deepseekKey,
       ...getCleanOverrides(),
-      outputLang,
+      outputLang: settings.outputLang,
       contextTerms: sonioxTerms,
     });
   } catch (err) {
-    console.error("Clean Mode rewrite failed, using original text:", err.message || err);
+    console.error("DeepSeek post-step failed, using original text:", err.message || err);
     return text;
   }
 }

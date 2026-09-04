@@ -18,6 +18,8 @@ const {
   buildCleanMessages,
   resolveCleanConfig,
   rewriteTranscript,
+  shouldPostProcess,
+  postProcessLabel,
 } = require("../ui/clean-mode");
 
 const FAKE_KEY = "test-key-fake";
@@ -39,6 +41,27 @@ test("defaults target direct DeepSeek API V4 flash with 8s timeout", () => {
   );
   assert.equal(CLEAN_MODE_DEFAULTS.model, "deepseek-v4-flash");
   assert.equal(CLEAN_MODE_DEFAULTS.timeoutMs, 8000);
+});
+
+// --- Post-process decision (DeepSeek owns all translation/cleanup) ---
+
+test("shouldPostProcess runs DeepSeek when cleaning OR a target language is set", () => {
+  // raw passthrough: no cleaning, no target language
+  assert.equal(shouldPostProcess({ cleanModeEnabled: false, outputLang: "auto" }), false);
+  assert.equal(shouldPostProcess({ cleanModeEnabled: false, outputLang: "" }), false);
+  // clean only, keep speaker's language
+  assert.equal(shouldPostProcess({ cleanModeEnabled: true, outputLang: "auto" }), true);
+  // target language set => DeepSeek translates even with Clean Mode OFF
+  assert.equal(shouldPostProcess({ cleanModeEnabled: false, outputLang: "english" }), true);
+  assert.equal(shouldPostProcess({ cleanModeEnabled: false, outputLang: "vietnamese" }), true);
+  assert.equal(shouldPostProcess({ cleanModeEnabled: true, outputLang: "vietnamese" }), true);
+});
+
+test("postProcessLabel says Translating when a target language is set", () => {
+  assert.equal(postProcessLabel({ cleanModeEnabled: true, outputLang: "auto" }), "Rewriting...");
+  assert.equal(postProcessLabel({ cleanModeEnabled: false, outputLang: "english" }), "Translating...");
+  assert.equal(postProcessLabel({ cleanModeEnabled: false, outputLang: "vietnamese" }), "Translating...");
+  assert.equal(postProcessLabel({ cleanModeEnabled: true, outputLang: "vietnamese" }), "Translating...");
 });
 
 // --- Prompt builder ---
@@ -243,13 +266,16 @@ test("settings UI exposes the Clean Mode toggle persisted by renderer.js", () =>
   assert.match(renderer, /cleanMode/);
 });
 
-test("bar pipeline consults Clean Mode before inserting", () => {
+test("bar pipeline consults DeepSeek post-step before inserting", () => {
   const bar = fs.readFileSync(
     path.join(__dirname, "..", "ui", "bar-renderer.js"),
     "utf8"
   );
-  assert.match(bar, /cleanMode|CleanMode|rewriteTranscript/);
-  assert.match(bar, /Rewriting/);
+  assert.match(bar, /CleanMode|rewriteTranscript|maybeRewriteTranscript/);
+  // gating + status label come from the pure helpers (no Soniox translation)
+  assert.match(bar, /shouldPostProcess/);
+  assert.match(bar, /postProcessLabel/);
+  assert.doesNotMatch(bar, /getSonioxTranslation|waitForSonioxTranslation/);
 });
 
 test("credentials store supports the DeepSeek key without breaking Soniox flow", () => {

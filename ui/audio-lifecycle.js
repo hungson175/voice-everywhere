@@ -9,7 +9,7 @@
  *    auto-timer stacked another 60fps canvas loop; toggle-off cancelled
  *    only the latest id, leaking the rest forever).
  *  - TimerRegistry: named timeouts/intervals with clear()/clearAll() so
- *    reminderTimer / autoHideTimer / pendingTranslation cannot leak across
+  *    reminderTimer / autoHideTimer cannot leak across
  *    start/stop cycles.
  *  - SharedAudio: one lazily-created AudioContext reused by every beep()
  *    (previously a brand-new context + audio thread per beep), with
