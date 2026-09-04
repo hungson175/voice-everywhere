@@ -32,10 +32,10 @@ function mockFetchJson(payload, { status = 200 } = {}) {
 
 // --- Defaults ---
 
-test("defaults target Huawei MaaS DeepSeek V4 flash with 8s timeout", () => {
+test("defaults target direct DeepSeek API V4 flash with 8s timeout", () => {
   assert.equal(
     CLEAN_MODE_DEFAULTS.baseURL,
-    "https://api-ap-southeast-1.modelarts-maas.com/openai/v1"
+    "https://api.deepseek.com"
   );
   assert.equal(CLEAN_MODE_DEFAULTS.model, "deepseek-v4-flash");
   assert.equal(CLEAN_MODE_DEFAULTS.timeoutMs, 8000);

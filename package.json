@@ -39,6 +39,10 @@
       {
         "from": "config.json",
         "to": "config.json"
+      },
+      {
+        "from": ".env",
+        "to": ".env"
       }
     ]
   }

@@ -32,14 +32,32 @@ const configPath = app.isPackaged
   : path.join(__dirname, "..", "config.json");
 const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 
+// --- Project .env: extraResources when packaged, project root in dev ---
+// Holds DEEPSEEK_VOICE_API_KEY (direct DeepSeek key for Clean Mode).
+// .env is git-ignored and chmod 600 — never commit it.
+const { loadEnvFile } = require("./env-loader");
+const projectEnvPath = app.isPackaged
+  ? path.join(process.resourcesPath, ".env")
+  : path.join(__dirname, "..", ".env");
+const projectEnv = loadEnvFile(projectEnvPath);
+
 // --- Load the locally stored Soniox credential ---
 function loadApiKeys() {
-  // Only source: stored credentials (user-entered via setup page)
-  // No shell env, no .env fallback — avoids stale/expired key confusion
+  // Soniox: only source is stored credentials (user-entered via setup page).
+  // No shell env, no .env fallback — avoids stale/expired key confusion.
+  // DeepSeek: project .env (DEEPSEEK_VOICE_API_KEY) wins when present,
+  // otherwise fall back to the key saved via Settings.
   credentials.removeLegacyGeminiKey();
   const creds = credentials.getCredentials();
   if (creds.sonioxKey) process.env.SONIOX_API_KEY = creds.sonioxKey;
-  if (creds.deepseekKey) process.env.DEEPSEEK_API_KEY = creds.deepseekKey;
+  const envDsKey = (projectEnv.DEEPSEEK_VOICE_API_KEY || "").trim();
+  if (envDsKey) {
+    process.env.DEEPSEEK_API_KEY = envDsKey;
+    console.log("[keys] DeepSeek source: project .env");
+  } else if (creds.deepseekKey) {
+    process.env.DEEPSEEK_API_KEY = creds.deepseekKey;
+    console.log("[keys] DeepSeek source: stored credentials");
+  }
 }
 
 loadApiKeys();

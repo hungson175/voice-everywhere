@@ -4,19 +4,18 @@
  * Pure module: no DOM, no Electron, no localStorage access. Works both in
  * Node (tests) and in the renderer via a plain <script> tag (window.CleanMode).
  *
- * Endpoint default: Huawei ModelArts MaaS (ap-southeast-1, OpenAI-compatible)
- * serving model "deepseek-v4-flash". Verified 2026-09-04: both this endpoint
- * and the direct DeepSeek API list "deepseek-v4-flash" in /models, but MaaS is
- * the default because it is closest to Vietnam (lower latency, ~1s for a tiny
- * rewrite probe) and matches the HUAWEI_MAAS_* credential the user already has.
- * To use the direct DeepSeek API instead, override:
- *   baseURL = "https://api.deepseek.com", model = "deepseek-v4-flash".
+ * Endpoint default: direct DeepSeek API serving model "deepseek-v4-flash"
+ * (verified live 2026-09-04: /models lists deepseek-v4-flash and a rewrite
+ * probe returned clean output). API key comes from the project's git-ignored
+ * .env (DEEPSEEK_VOICE_API_KEY), loaded by the main process — see
+ * electron/main.js. Override per-install via localStorage:
+ *   cleanModeBaseURL / cleanModeModel.
  */
 
 "use strict";
 
 const CLEAN_MODE_DEFAULTS = Object.freeze({
-  baseURL: "https://api-ap-southeast-1.modelarts-maas.com/openai/v1",
+  baseURL: "https://api.deepseek.com",
   model: "deepseek-v4-flash",
   timeoutMs: 8000,
 });
