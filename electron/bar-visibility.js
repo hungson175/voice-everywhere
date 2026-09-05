@@ -1,24 +1,29 @@
 /**
  * Bar-window visibility helpers — testable show/hide contract.
  *
- * Idle-CPU fix: the bar is a transparent always-on-top window with
- * backdrop-filter:blur(20px). Keeping it "shown" 24/7 with only CSS opacity
- * hiding it forces the Chromium compositor/GPU to composite it every frame
- * while the mic is OFF. HIDDEN must REALLY hide the window; toggle re-shows
- * with showInactive() (never steals focus) + setVisibleOnAllWorkspaces so
- * cross-Spaces pinning survives the hide/show cycle (hide() preserves the
- * flag; we re-apply defensively).
+ * SPACES CONTRACT (regression 2026-09-05): the bar window must stay SHOWN
+ * for the lifetime of the app. An earlier idle-CPU fix called win.hide() on
+ * HIDDEN and the hide/show cycle broke macOS Spaces pinning — the bar then
+ * appeared on only one Space. The idle-CPU root cause was stacking rAF
+ * loops + incomplete audio teardown (see ui/audio-lifecycle.js), NOT the
+ * shown window, so HIDDEN only flips CSS (.bar.hidden = opacity 0 +
+ * pointer-events none) and makes the window click-through. Never hide —
+ * hiding drops the window from every Space but the current one.
  *
  * Used by electron/main.js for the show-bar/hide-bar IPC handlers and the
- * initial hidden state. Null-safe for shutdown races.
+ * initial state. Null-safe for shutdown races.
  */
 
 "use strict";
 
 function hideBarWindow(win) {
-  if (!win || typeof win.hide !== "function") return;
+  if (!win) return;
   try {
-    win.hide();
+    // Click-through while CSS-hidden; the window itself stays shown so macOS
+    // keeps it pinned to all Spaces.
+    if (typeof win.setIgnoreMouseEvents === "function") {
+      win.setIgnoreMouseEvents(true, { forward: true });
+    }
   } catch {
     // shutdown races must never throw out of IPC handlers
   }
@@ -27,13 +32,16 @@ function hideBarWindow(win) {
 function showBarWindow(win) {
   if (!win) return;
   try {
-    if (typeof win.setVisibleOnAllWorkspaces === "function") {
-      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-    }
+    // showInactive first (never steals focus), then re-pin to all Spaces —
+    // pinning must be (re-)applied to a shown window to stick across Spaces
+    // and fullscreen.
     if (typeof win.showInactive === "function") {
       win.showInactive();
     } else if (typeof win.show === "function") {
       win.show();
+    }
+    if (typeof win.setVisibleOnAllWorkspaces === "function") {
+      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     }
   } catch {
     // shutdown races must never throw out of IPC handlers

@@ -1,16 +1,17 @@
 /**
- * Bar-window visibility tests (TDD — must FAIL before the fix).
+ * Bar-window visibility tests — Spaces-pinning contract.
  *
- * Suspect in electron/main.js: barWin is a transparent always-on-top
- * visibleOnAllWorkspaces window kept "shown" 24/7 via showInactive() with
- * only CSS opacity hiding it. A transparent + backdrop-filter:blur(20px)
- * window that is never really hidden keeps the Chromium compositor/GPU
- * working while the mic is OFF. Expected: HIDDEN really hides the window
- * (near-0 CPU/GPU); toggle re-shows with showInactive() +
- * setVisibleOnAllWorkspaces so cross-Spaces behavior is preserved.
+ * REGRESSION (2026-09-05): the idle-CPU fix called win.hide() on HIDDEN.
+ * The hide/show cycle broke macOS Spaces pinning — the bar then appeared
+ * only on one Space instead of all of them (pre-fix, always-shown behavior).
+ * The 30% idle CPU was caused by stacking rAF loops + incomplete audio
+ * teardown (covered by audio-lifecycle/stt-teardown tests), NOT by the
+ * shown window — so HIDDEN must NEVER hide the window. CSS opacity 0 +
+ * pointer-events none (bar-styles.css .bar.hidden) is the invisibility
+ * mechanism; the window stays shown and pinned to all Spaces 24/7.
  *
- * These tests target the extracted helper electron/bar-visibility.js so the
- * show/hide contract is unit-testable without a live Electron runtime.
+ * These tests target electron/bar-visibility.js so the contract is
+ * unit-testable without a live Electron runtime.
  *
  * Run: npm test (node --test tests/*.test.js)
  */
@@ -29,21 +30,36 @@ function fakeBarWindow() {
   return {
     calls,
     visible: true,
+    ignoreMouseEvents: false,
     isVisible() { return this.visible; },
     hide() { this.visible = false; calls.push("hide"); },
     showInactive() { this.visible = true; calls.push("showInactive"); },
+    setIgnoreMouseEvents(ignore, opts) {
+      this.ignoreMouseEvents = ignore;
+      calls.push(["setIgnoreMouseEvents", ignore, opts]);
+    },
     setVisibleOnAllWorkspaces(flag, opts) {
       calls.push(["setVisibleOnAllWorkspaces", flag, opts]);
     },
   };
 }
 
-describe("bar-visibility — really hide when HIDDEN, restore on toggle", () => {
-  test("hideBarWindow really hides the window (no 24/7 compositor work)", () => {
+describe("bar-visibility — window stays shown on all Spaces, CSS hides it", () => {
+  test("hideBarWindow NEVER hides the window (Spaces pinning would break)", () => {
     const win = fakeBarWindow();
     hideBarWindow(win);
-    assert.ok(win.calls.includes("hide"), "HIDDEN did not hide the window — compositor keeps running");
-    assert.equal(win.isVisible(), false);
+    assert.ok(!win.calls.includes("hide"), "HIDDEN hid the window — bar breaks across Spaces");
+    assert.equal(win.isVisible(), true);
+  });
+
+  test("hideBarWindow makes the window click-through while CSS-hidden", () => {
+    const win = fakeBarWindow();
+    hideBarWindow(win);
+    const mouse = win.calls.find(
+      (c) => Array.isArray(c) && c[0] === "setIgnoreMouseEvents"
+    );
+    assert.ok(mouse, "hidden bar must ignore mouse events (CSS is opacity-only)");
+    assert.equal(mouse[1], true);
   });
 
   test("hideBarWindow is null-safe (called during shutdown races)", () => {
@@ -51,7 +67,7 @@ describe("bar-visibility — really hide when HIDDEN, restore on toggle", () => 
     hideBarWindow(undefined);
   });
 
-  test("showBarWindow re-shows without focus and restores cross-Spaces pinning", () => {
+  test("showBarWindow re-shows without focus and re-pins to all Spaces", () => {
     const win = fakeBarWindow();
     hideBarWindow(win);
     showBarWindow(win);
@@ -59,16 +75,17 @@ describe("bar-visibility — really hide when HIDDEN, restore on toggle", () => 
     const pin = win.calls.find(
       (c) => Array.isArray(c) && c[0] === "setVisibleOnAllWorkspaces"
     );
-    assert.ok(pin, "setVisibleOnAllWorkspaces not re-applied — bar breaks across Spaces");
+    assert.ok(pin, "setVisibleOnAllWorkspaces not re-applied");
     assert.equal(pin[1], true);
     assert.equal(pin[2]?.visibleOnFullScreen, true);
     assert.equal(win.isVisible(), true);
   });
 
-  test("setBarVisible(false) hides; setBarVisible(true) restores", () => {
+  test("setBarVisible(false) keeps window shown; setBarVisible(true) restores", () => {
     const win = fakeBarWindow();
     setBarVisible(win, false);
-    assert.equal(win.isVisible(), false);
+    assert.equal(win.isVisible(), true);
+    assert.ok(!win.calls.includes("hide"));
     setBarVisible(win, true);
     assert.equal(win.isVisible(), true);
     assert.ok(win.calls.includes("showInactive"));

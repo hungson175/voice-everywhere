@@ -245,12 +245,9 @@ app.on("ready", () => {
   barWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   barWin.setIgnoreMouseEvents(true, { forward: true });
 
-  // Start REALLY hidden (not showInactive + CSS opacity): a transparent
-  // always-on-top window with backdrop-filter:blur keeps the compositor/GPU
-  // working 24/7 even at opacity 0. hideBarWindow() drops that cost to ~0
-  // while the mic is off; show-bar re-shows via showInactive() +
-  // setVisibleOnAllWorkspaces so cross-Spaces pinning survives.
-  hideBarWindow(barWin);
+  // Start shown but visually hidden (CSS handles opacity) —
+  // keeping the window "shown" is required for setVisibleOnAllWorkspaces to persist across spaces.
+  barWin.showInactive();
 
   // Global shortcut: Ctrl+Option+Cmd+V to toggle mic
   globalShortcut.register("Control+Option+Command+V", () => {
@@ -270,7 +267,7 @@ app.on("activate", () => {
   if (settingsWin) settingsWin.show();
 });
 
-// --- IPC: Bar window control (real hide/show for near-0 idle CPU/GPU) ---
+// --- IPC: Bar window control (window stays shown for Spaces pinning; CSS hides it) ---
 ipcMain.on("show-bar", () => {
   if (barWin && !barWin.isDestroyed()) showBarWindow(barWin);
 });

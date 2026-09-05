@@ -151,7 +151,7 @@ function setState(newState, message) {
     timers.clear("autoHide"); // a pending SUCCESS/ERROR return must not pop the bar back up
     stopWaveform();
     sharedAudio.suspendIdle(); // quiet the shared beep context while off
-    window.voiceEverywhere.hideBar(); // really hides the window (near-0 CPU/GPU)
+    window.voiceEverywhere.hideBar(); // window stays shown (Spaces pinning); CSS opacity hides it
     return;
   }
 
@@ -271,7 +271,7 @@ async function startListening() {
   }
 
   try {
-    window.voiceEverywhere.showBar(); // really re-shows the hidden window
+    window.voiceEverywhere.showBar(); // ensure shown on all Spaces (no focus steal)
     setState("CONNECTING", "Connecting...");
     window.voiceEverywhere.setMicState(true);
 
