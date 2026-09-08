@@ -18,6 +18,11 @@ Known gotchas and hard-earned lessons. Read before modifying tricky areas.
 - Recovery when the key goes stale (keys rotate/expire): reset credentials in the app, enter a fresh Soniox key, then restart the app because it loads the key once at startup.
 - v2 removes the external LLM layer. On first v2 launch, the legacy `geminiKey` field is deleted from `credentials.json`.
 
+## Floating bar position
+
+- Bar must sit bottom-center of the **cursor display's `workArea`** (`electron/bar-position.js`), repositioned on every show-bar — NOT pinned once at launch to `getPrimaryDisplay()` with `bounds` math. On stacked monitors (ultrawide above laptop) the old math put the bar on the wrong screen, flush with the edge; `workArea` excludes menu bar + Dock and carries the display offset.
+- Never pass computed `x/y` only at `new BrowserWindow` time; call `win.setPosition()` in the show-bar IPC handler so the bar follows the user across monitors on every toggle.
+
 ## Electron
 
 - Audio uses Web Audio API in renderer (MediaDevices.getUserMedia), NOT SoX — no native dependencies needed

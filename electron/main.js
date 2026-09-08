@@ -16,6 +16,7 @@ const textInserter = require("./text-inserter");
 const credentials = require("./credentials");
 const { createScratchpadUpdate } = require("../ui/scratchpad-model");
 const { hideBarWindow, showBarWindow } = require("./bar-visibility");
+const { placeBarWindow, BAR_WIDTH, BAR_HEIGHT } = require("./bar-position");
 
 // --- PATH fix for packaged app (Finder doesn't inherit shell PATH) ---
 if (app.isPackaged) {
@@ -211,19 +212,12 @@ app.on("ready", () => {
   });
 
   // --- Bar window (floating, non-focusable) ---
-  const display = screen.getPrimaryDisplay();
-  const { width: screenW } = display.workAreaSize;
-  const screenBottom = display.bounds.y + display.bounds.height; // absolute bottom of screen
-  const barWidth = 600;
-  const barHeight = 56;
-  const barX = Math.round((screenW - barWidth) / 2);
-  const barY = screenBottom - barHeight;
-
+  // Position: bottom-center of the CURSOR display's workArea (see
+  // electron/bar-position.js). Repositioned on every show-bar so it follows
+  // the user across stacked/multi monitors instead of sticking to primary.
   barWin = new BrowserWindow({
-    width: barWidth,
-    height: barHeight,
-    x: barX,
-    y: barY,
+    width: BAR_WIDTH,
+    height: BAR_HEIGHT,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -247,6 +241,7 @@ app.on("ready", () => {
 
   // Start shown but visually hidden (CSS handles opacity) —
   // keeping the window "shown" is required for setVisibleOnAllWorkspaces to persist across spaces.
+  placeBarWindow(barWin, screen);
   barWin.showInactive();
 
   // Global shortcut: Ctrl+Option+Cmd+V to toggle mic
@@ -269,7 +264,10 @@ app.on("activate", () => {
 
 // --- IPC: Bar window control (window stays shown for Spaces pinning; CSS hides it) ---
 ipcMain.on("show-bar", () => {
-  if (barWin && !barWin.isDestroyed()) showBarWindow(barWin);
+  if (barWin && !barWin.isDestroyed()) {
+    placeBarWindow(barWin, screen); // follow the cursor display on every toggle
+    showBarWindow(barWin);
+  }
 });
 
 ipcMain.on("hide-bar", () => {
