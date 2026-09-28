@@ -15,6 +15,20 @@
  */
 const CONTROL_TOKEN = /^<[a-z]+>$/;
 
+/**
+ * Soniox error codes worth retrying: the server was busy or failed, not our
+ * request. Anything else (400 bad config, 401 bad key, 402 no credit …) is a
+ * refusal that the same request will get again.
+ */
+const TRANSIENT_ERROR_CODES = new Set([408, 429, 500, 502, 503, 504]);
+
+/** An Error tagged for the bar: transient → reconnect, definite → tell the user. */
+function sttError(message, transient) {
+  const err = new Error(message);
+  err.transient = transient;
+  return err;
+}
+
 class SonioxSTT {
   constructor() {
     this.ws = null;
@@ -27,7 +41,8 @@ class SonioxSTT {
     this.translationTranscript = "";
     this.translationEnabled = false;
     this.onTranscript = null; // (fullTranscript, finalTranscript, hasFinal) => void
-    this.onError = null; // (error) => void
+    this.onError = null; // (error) => void — error.transient says retry or not
+    this.onClose = null; // (error) => void — the live socket closed on its own
     this.sonioxConfig = null; // loaded from config.json
     this._connectReject = null; // settle fn for the in-flight connect await
   }
@@ -63,14 +78,20 @@ class SonioxSTT {
 
     // Get microphone
     console.log("[stt] Requesting mic...");
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        channelCount: cfg.num_channels,
-        sampleRate: { ideal: cfg.sample_rate },
-        echoCancellation: true,
-        noiseSuppression: true,
-      },
-    });
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: cfg.num_channels,
+          sampleRate: { ideal: cfg.sample_rate },
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
+    } catch (err) {
+      // No permission / no device: retrying will not grant it.
+      err.transient = false;
+      throw err;
+    }
 
     // Set up Web Audio pipeline
     this.audioContext = new AudioContext({ sampleRate: cfg.sample_rate });
@@ -98,7 +119,7 @@ class SonioxSTT {
 
     await new Promise((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new Error("Soniox connection timeout")),
+        () => reject(sttError("Soniox connection timeout", true)),
         10000
       );
       const settle = () => {
@@ -116,7 +137,7 @@ class SonioxSTT {
       };
       pendingWs.onerror = () => {
         settle();
-        reject(new Error("Soniox connection failed"));
+        reject(sttError("Soniox connection failed", true));
       };
     });
 
@@ -139,15 +160,7 @@ class SonioxSTT {
     console.log("[stt] Init msg:", JSON.stringify(initMsg, null, 2));
     this.ws.send(JSON.stringify(initMsg));
 
-    // Handle incoming tokens
-    this.ws.onmessage = (event) => this._handleMessage(event);
-    this.ws.onerror = (e) => {
-      console.error("[stt] WS error:", e);
-      this.onError?.(new Error("Soniox WebSocket error"));
-    };
-    this.ws.onclose = (e) => {
-      console.log("[stt] WS closed: code=" + e.code + " reason=" + e.reason);
-    };
+    this._attachSocket(this.ws);
 
     // Stream audio chunks as binary
     this.processor.onaudioprocess = (e) => {
@@ -161,6 +174,24 @@ class SonioxSTT {
     source.connect(this.processor);
     this.processor.connect(this.audioContext.destination);
     console.log("[stt] Audio pipeline connected, streaming...");
+  }
+
+  /**
+   * Handlers for the live socket. stop() detaches them before closing, so any
+   * close that reaches onclose is a drop: the network, a server restart, or
+   * Soniox's stream limit. An error event is only logged — a close always
+   * follows it, and reporting both tore the session down twice.
+   */
+  _attachSocket(ws) {
+    ws.onmessage = (event) => this._handleMessage(event);
+    ws.onerror = (e) => {
+      console.error("[stt] WS error:", e);
+    };
+    ws.onclose = (e) => {
+      console.log("[stt] WS closed: code=" + e.code + " reason=" + e.reason);
+      if (ws !== this.ws) return; // a socket we already replaced
+      this.onClose?.(sttError(`Soniox connection closed (${e.code})`, true));
+    };
   }
 
   _buildInitMessage(apiKey, context, sessionOptions = {}) {
@@ -305,7 +336,7 @@ class SonioxSTT {
       const data = JSON.parse(event.data);
 
       if (data.error_message) {
-        this.onError?.(new Error(data.error_message));
+        this.onError?.(sttError(data.error_message, TRANSIENT_ERROR_CODES.has(data.error_code)));
         return;
       }
 

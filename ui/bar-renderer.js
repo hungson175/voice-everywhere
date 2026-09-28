@@ -107,10 +107,13 @@ const waveformLoop = new AudioLifecycle.WaveformLoop();
 const timers = new AudioLifecycle.TimerRegistry();
 const sharedAudio = new AudioLifecycle.SharedAudio();
 const startGen = new AudioLifecycle.Generation();
+// Bounded backoff when the STT connection drops (ui/reconnect-policy.js).
+const reconnect = new ReconnectPolicy.ReconnectPolicy();
 
 // --- State ---
 let state = "HIDDEN"; // HIDDEN, CONNECTING, LISTENING, PROCESSING, INSERTING, SUCCESS, ERROR
 let cmdGen = 0; // bumped on stop; invalidates in-flight handleCommandDetected() runs
+let sttLive = false; // the engine is connected and hearing — the only time LISTENING is true
 let sonioxKey = "";
 let sonioxTerms = [];
 let sonioxTranslationTerms = [];
@@ -162,22 +165,29 @@ function setState(newState, message) {
     setTranscriptStatus(message, newState.toLowerCase());
   }
 
-  // After success/error, return to LISTENING (keep bar visible, STT still running).
-  // TimerRegistry replaces any pending timer — auto-transitions never stack.
+  // After success/error, go back to LISTENING — but only if the engine is
+  // really live (see returnAfterFeedback). TimerRegistry replaces any pending
+  // timer — auto-transitions never stack.
   if (newState === "SUCCESS" || newState === "CLIPBOARD") {
-    timers.setTimeout("autoHide", () => {
-      stt.resetTranscript();
-      setState("LISTENING");
-      transcriptEl.textContent = "";
-      startWaveform();
-    }, newState === "CLIPBOARD" ? 3000 : 1500);
+    timers.setTimeout("autoHide", returnAfterFeedback, newState === "CLIPBOARD" ? 3000 : 1500);
   } else if (newState === "ERROR") {
-    timers.setTimeout("autoHide", () => {
-      stt.resetTranscript();
-      setState("LISTENING");
-      transcriptEl.textContent = "";
-      startWaveform();
-    }, 2000);
+    timers.setTimeout("autoHide", returnAfterFeedback, sttLive ? 2000 : 4000);
+  }
+}
+
+/** Leave SUCCESS / CLIPBOARD / ERROR. Never shows LISTENING with a dead engine. */
+function returnAfterFeedback() {
+  const next = ReconnectPolicy.afterFeedback({ sttLive, reconnectPending: timers.has("reconnect") });
+  if (next === "LISTENING") {
+    stt.resetTranscript();
+    setState("LISTENING");
+    transcriptEl.textContent = "";
+    startWaveform();
+  } else if (next === "RECONNECTING") {
+    setState("CONNECTING", "Reconnecting…");
+  } else {
+    stopListening();
+    setState("HIDDEN");
   }
 }
 
@@ -262,7 +272,7 @@ async function startListening() {
   // Cancel any pending auto-transition and clean up any lingering session
   timers.clear("autoHide");
   stopListening(); // invalidates generations, clears timers, stops STT/waveform
-  const myStart = startGen.claim(); // stale if a stop lands mid-CONNECTING
+  reconnect.reset(); // a session the user started gets the full retry budget
 
   loadSettings();
   if (!sonioxKey) {
@@ -270,11 +280,16 @@ async function startListening() {
     return;
   }
 
-  try {
-    window.voiceEverywhere.showBar(); // ensure shown on all Spaces (no focus steal)
-    setState("CONNECTING", "Connecting...");
-    window.voiceEverywhere.setMicState(true);
+  window.voiceEverywhere.showBar(); // ensure shown on all Spaces (no focus steal)
+  setState("CONNECTING", "Connecting...");
+  window.voiceEverywhere.setMicState(true);
+  await connectStt();
+}
 
+/** One attempt to bring the engine up. First start and every reconnect. */
+async function connectStt() {
+  const myStart = startGen.claim(); // stale if a stop lands mid-CONNECTING
+  try {
     const context = buildSonioxContext();
     // Transcription-only: no Soniox translation option. The transcript is
     // whatever was said; DeepSeek translates/cleans after the stop word.
@@ -287,22 +302,64 @@ async function startListening() {
       return;
     }
 
-    setState("LISTENING");
-    transcriptEl.textContent = "";
-    startWaveform();
-
-    timers.setInterval("reminder", () => beep(660, 0.15, 0.2), 60000);
+    sttLive = true;
+    reconnect.connected();
+    // A command may still be pasting; its SUCCESS/ERROR returns here itself.
+    if (state === "CONNECTING") {
+      setState("LISTENING");
+      transcriptEl.textContent = "";
+      startWaveform();
+    }
+    if (!timers.has("reminder")) {
+      timers.setInterval("reminder", () => beep(660, 0.15, 0.2), 60000);
+    }
   } catch (err) {
     if (!startGen.isCurrent(myStart) || state === "HIDDEN") return; // stopped externally while connecting
     console.error("Failed to start:", err);
-    setState("ERROR", "Mic error: " + err.message);
-    window.voiceEverywhere.setMicState(false);
+    handleSttDown(err);
   }
+}
+
+/**
+ * The engine is gone: it dropped, reported an error, or would not connect.
+ * Release the mic now; retry a lost connection with backoff; show a refusal
+ * once and turn off. A command already being pasted is left to finish.
+ */
+function handleSttDown(err) {
+  if (state === "HIDDEN") return;
+  sttLive = false;
+  startGen.invalidate();
+  stt.stop();
+
+  const decision = ReconnectPolicy.decideOnDrop(err, reconnect);
+  if (decision.action === "retry") {
+    console.warn(`[stt] down (${err?.message}); reconnect ${decision.attempt}/${decision.maxAttempts} in ${decision.delay} ms`);
+    timers.setTimeout("reconnect", connectStt, decision.delay);
+    if (state === "LISTENING" || state === "CONNECTING") {
+      stopWaveform();
+      setState("CONNECTING", `Reconnecting… (${decision.attempt}/${decision.maxAttempts})`);
+    }
+    return;
+  }
+
+  console.error(`[stt] down for good (${decision.reason}):`, err);
+  stopListening();
+  setState("ERROR", sttErrorLabel(err, decision.reason));
+}
+
+function sttErrorLabel(err, reason) {
+  const msg = (err && err.message) || "";
+  if (reason === "gave-up") return "Connection lost — could not reconnect";
+  if (err && (err.name === "NotAllowedError" || err.name === "NotFoundError")) return "Mic error: " + msg;
+  if (isAuthError(msg)) return "Speech key rejected: " + msg;
+  return "STT error: " + msg;
 }
 
 function stopListening() {
   cmdGen++; // invalidate any in-flight command so it won't paste after stop
   startGen.invalidate(); // invalidate any in-flight startListening()
+  sttLive = false;
+  timers.clear("reconnect");
   stt.stop();
   stopWaveform();
   window.voiceEverywhere.setMicState(false);
@@ -499,9 +556,9 @@ async function init() {
   stt.onTranscript = handleTranscript;
   stt.onError = (err) => {
     console.error("STT error:", err);
-    stopListening();
-    setState("ERROR", "STT error");
+    handleSttDown(err);
   };
+  stt.onClose = handleSttDown;
 
   loadSettings();
 }
