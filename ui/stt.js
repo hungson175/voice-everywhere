@@ -8,6 +8,13 @@
  * 2. Then binary audio ONLY (no more JSON!)
  */
 
+/**
+ * Soniox marks protocol events with whole tokens: "<end>" (an endpoint) and
+ * "<fin>" (a manual finalize). They are not speech and never reach the
+ * transcript — else "thank you.<end>" never matches the stop word.
+ */
+const CONTROL_TOKEN = /^<[a-z]+>$/;
+
 class SonioxSTT {
   constructor() {
     this.ws = null;
@@ -169,6 +176,9 @@ class SonioxSTT {
     if (cfg.language_hints_strict != null) {
       initMsg.language_hints_strict = cfg.language_hints_strict;
     }
+    // Finalize as soon as speech ends (~0.5 s). Without it Soniox holds the
+    // last words — the stop word with them — non-final for ~6 s.
+    initMsg.enable_endpoint_detection = cfg.enable_endpoint_detection !== false;
     if (context) initMsg.context = context;
     if (sessionOptions.translation) {
       initMsg.translation = sessionOptions.translation;
@@ -306,6 +316,7 @@ class SonioxSTT {
       let translationInterimText = "";
 
       for (const token of tokens) {
+        if (CONTROL_TOKEN.test(token.text)) continue;
         const isTranslation = token.translation_status === "translation";
         if (isTranslation && token.is_final) {
           translationFinalText += token.text;

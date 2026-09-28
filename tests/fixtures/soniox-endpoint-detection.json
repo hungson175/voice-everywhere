@@ -1,0 +1,3139 @@
+{
+ "_about": "Real messages from wss://stt-rt.soniox.com/transcribe-websocket (stt-rt-v5, language_hints vi+en, enable_endpoint_detection=true), captured 2026-09-26 by streaming e2e/fixtures/grok-live-command.wav at real time with silence after it and no end-of-audio signal. On an endpoint Soniox finalizes everything pending and appends a final '<end>' token - in the SAME message as the stop word (0.47 s after speech ended). pause_mid_command: the clip cut before 'thank you', 3 s of silence (an endpoint), then the whole clip. two_commands: the whole clip twice, 3 s apart.",
+ "streams": {
+  "pause_mid_command": {
+   "expected_commands": [
+    "Kiểm tra lại cái backend giúp tao. Kiểm tra lại cái backend giúp tao,"
+   ],
+   "messages": [
+    {
+     "tokens": [],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 0
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 720
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 840
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1080
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 660,
+       "end_ms": 720,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1200
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1320
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1440
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 1020,
+       "end_ms": 1080,
+       "confidence": 0.948,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1560
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 1020,
+       "end_ms": 1080,
+       "confidence": 0.948,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 1200,
+       "end_ms": 1260,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 1260,
+       "end_ms": 1320,
+       "confidence": 0.999,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1800
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": true
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": true
+      },
+      {
+       "text": "end",
+       "start_ms": 1020,
+       "end_ms": 1080,
+       "confidence": 0.948,
+       "is_final": true
+      },
+      {
+       "text": " gi",
+       "start_ms": 1200,
+       "end_ms": 1260,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "úp",
+       "start_ms": 1260,
+       "end_ms": 1320,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": " ta",
+       "start_ms": 1380,
+       "end_ms": 1440,
+       "confidence": 0.996,
+       "is_final": true
+      },
+      {
+       "text": "o.",
+       "start_ms": 1440,
+       "end_ms": 1440,
+       "confidence": 0.994,
+       "is_final": true
+      },
+      {
+       "text": "<end>",
+       "start_ms": 0,
+       "end_ms": 0,
+       "confidence": 1,
+       "is_final": true
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 1920
+    },
+    {
+     "tokens": [],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 3000
+    },
+    {
+     "tokens": [],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 3960
+    },
+    {
+     "tokens": [],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 4920
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 5280
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 5400
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 5520
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 5760
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 5280,
+       "end_ms": 5340,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 5340,
+       "end_ms": 5400,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 5880
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 5280,
+       "end_ms": 5340,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 5400,
+       "end_ms": 5460,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 6000
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 5280,
+       "end_ms": 5340,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 5400,
+       "end_ms": 5460,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 5520,
+       "end_ms": 5580,
+       "confidence": 0.999,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 6120
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 5280,
+       "end_ms": 5340,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 5400,
+       "end_ms": 5460,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 5520,
+       "end_ms": 5580,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 0.998,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 6240
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 5280,
+       "end_ms": 5340,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 5400,
+       "end_ms": 5460,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 5520,
+       "end_ms": 5580,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 5940,
+       "end_ms": 6000,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 6480
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 5280,
+       "end_ms": 5340,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 5400,
+       "end_ms": 5460,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 5520,
+       "end_ms": 5580,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 5940,
+       "end_ms": 6000,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 6060,
+       "end_ms": 6120,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 6600
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 5280,
+       "end_ms": 5340,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 5400,
+       "end_ms": 5460,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 5520,
+       "end_ms": 5580,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 5940,
+       "end_ms": 6000,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 6060,
+       "end_ms": 6120,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "o,",
+       "start_ms": 6180,
+       "end_ms": 6240,
+       "confidence": 0.625,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 6720
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 5280,
+       "end_ms": 5340,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 5400,
+       "end_ms": 5460,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 5520,
+       "end_ms": 5580,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 5940,
+       "end_ms": 6000,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 6060,
+       "end_ms": 6120,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "o,",
+       "start_ms": 6180,
+       "end_ms": 6240,
+       "confidence": 0.625,
+       "is_final": false
+      },
+      {
+       "text": " th",
+       "start_ms": 6540,
+       "end_ms": 6600,
+       "confidence": 0.995,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 7080
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 5280,
+       "end_ms": 5340,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 5400,
+       "end_ms": 5460,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 5520,
+       "end_ms": 5580,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 5940,
+       "end_ms": 6000,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 6060,
+       "end_ms": 6120,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "o,",
+       "start_ms": 6180,
+       "end_ms": 6240,
+       "confidence": 0.625,
+       "is_final": false
+      },
+      {
+       "text": " th",
+       "start_ms": 6540,
+       "end_ms": 6600,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ank",
+       "start_ms": 6660,
+       "end_ms": 6720,
+       "confidence": 0.999,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 1920,
+     "total_audio_proc_ms": 7200
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 4740,
+       "end_ms": 4800,
+       "confidence": 0.997,
+       "is_final": true
+      },
+      {
+       "text": "ểm",
+       "start_ms": 4800,
+       "end_ms": 4860,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " tra",
+       "start_ms": 4920,
+       "end_ms": 4980,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " lại",
+       "start_ms": 5160,
+       "end_ms": 5220,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " c",
+       "start_ms": 5280,
+       "end_ms": 5340,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "ái",
+       "start_ms": 5400,
+       "end_ms": 5460,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " back",
+       "start_ms": 5520,
+       "end_ms": 5580,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": "end",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 0.998,
+       "is_final": true
+      },
+      {
+       "text": " gi",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "úp",
+       "start_ms": 5940,
+       "end_ms": 6000,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " ta",
+       "start_ms": 6060,
+       "end_ms": 6120,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "o,",
+       "start_ms": 6180,
+       "end_ms": 6240,
+       "confidence": 0.625,
+       "is_final": true
+      },
+      {
+       "text": " th",
+       "start_ms": 6540,
+       "end_ms": 6600,
+       "confidence": 0.995,
+       "is_final": true
+      },
+      {
+       "text": "ank",
+       "start_ms": 6660,
+       "end_ms": 6720,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": " y",
+       "start_ms": 6780,
+       "end_ms": 6840,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": "ou.",
+       "start_ms": 6840,
+       "end_ms": 6840,
+       "confidence": 0.998,
+       "is_final": true
+      },
+      {
+       "text": "<end>",
+       "start_ms": 0,
+       "end_ms": 0,
+       "confidence": 1,
+       "is_final": true
+      }
+     ],
+     "final_audio_proc_ms": 7320,
+     "total_audio_proc_ms": 7320
+    }
+   ]
+  },
+  "two_commands": {
+   "expected_commands": [
+    "Kiểm tra lại cái backend giúp tao,",
+    "Kiểm tra lại cái backend giúp tao,"
+   ],
+   "messages": [
+    {
+     "tokens": [],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 0
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 720
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 840
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1080
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 660,
+       "end_ms": 720,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1200
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1320
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1440
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 1020,
+       "end_ms": 1080,
+       "confidence": 0.948,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1560
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 1020,
+       "end_ms": 1080,
+       "confidence": 0.948,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 1200,
+       "end_ms": 1260,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 1260,
+       "end_ms": 1320,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1800
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 1020,
+       "end_ms": 1080,
+       "confidence": 0.948,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 1200,
+       "end_ms": 1260,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 1260,
+       "end_ms": 1320,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 1380,
+       "end_ms": 1440,
+       "confidence": 0.994,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 1920
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 1020,
+       "end_ms": 1080,
+       "confidence": 0.948,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 1200,
+       "end_ms": 1260,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 1260,
+       "end_ms": 1320,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 1380,
+       "end_ms": 1440,
+       "confidence": 0.994,
+       "is_final": false
+      },
+      {
+       "text": "o,",
+       "start_ms": 1500,
+       "end_ms": 1560,
+       "confidence": 0.767,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 2040
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 1020,
+       "end_ms": 1080,
+       "confidence": 0.948,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 1200,
+       "end_ms": 1260,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 1260,
+       "end_ms": 1320,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 1380,
+       "end_ms": 1440,
+       "confidence": 0.994,
+       "is_final": false
+      },
+      {
+       "text": "o,",
+       "start_ms": 1500,
+       "end_ms": 1560,
+       "confidence": 0.767,
+       "is_final": false
+      },
+      {
+       "text": " th",
+       "start_ms": 1800,
+       "end_ms": 1860,
+       "confidence": 0.973,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 2400
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 1020,
+       "end_ms": 1080,
+       "confidence": 0.948,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 1200,
+       "end_ms": 1260,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 1260,
+       "end_ms": 1320,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 1380,
+       "end_ms": 1440,
+       "confidence": 0.994,
+       "is_final": false
+      },
+      {
+       "text": "o,",
+       "start_ms": 1500,
+       "end_ms": 1560,
+       "confidence": 0.767,
+       "is_final": false
+      },
+      {
+       "text": " th",
+       "start_ms": 1800,
+       "end_ms": 1860,
+       "confidence": 0.973,
+       "is_final": false
+      },
+      {
+       "text": "ank",
+       "start_ms": 1920,
+       "end_ms": 1980,
+       "confidence": 0.999,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 0,
+     "total_audio_proc_ms": 2520
+    },
+    {
+     "tokens": [
+      {
+       "text": "Ki",
+       "start_ms": 120,
+       "end_ms": 180,
+       "confidence": 0.99,
+       "is_final": true
+      },
+      {
+       "text": "ểm",
+       "start_ms": 180,
+       "end_ms": 240,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": " tra",
+       "start_ms": 300,
+       "end_ms": 360,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": " lại",
+       "start_ms": 480,
+       "end_ms": 540,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " c",
+       "start_ms": 600,
+       "end_ms": 660,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "ái",
+       "start_ms": 720,
+       "end_ms": 780,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " back",
+       "start_ms": 840,
+       "end_ms": 900,
+       "confidence": 0.809,
+       "is_final": true
+      },
+      {
+       "text": "end",
+       "start_ms": 1020,
+       "end_ms": 1080,
+       "confidence": 0.948,
+       "is_final": true
+      },
+      {
+       "text": " gi",
+       "start_ms": 1200,
+       "end_ms": 1260,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "úp",
+       "start_ms": 1260,
+       "end_ms": 1320,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " ta",
+       "start_ms": 1380,
+       "end_ms": 1440,
+       "confidence": 0.994,
+       "is_final": true
+      },
+      {
+       "text": "o,",
+       "start_ms": 1500,
+       "end_ms": 1560,
+       "confidence": 0.767,
+       "is_final": true
+      },
+      {
+       "text": " th",
+       "start_ms": 1800,
+       "end_ms": 1860,
+       "confidence": 0.973,
+       "is_final": true
+      },
+      {
+       "text": "ank",
+       "start_ms": 1920,
+       "end_ms": 1980,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": " y",
+       "start_ms": 2100,
+       "end_ms": 2160,
+       "confidence": 0.994,
+       "is_final": true
+      },
+      {
+       "text": "ou.",
+       "start_ms": 2160,
+       "end_ms": 2160,
+       "confidence": 0.969,
+       "is_final": true
+      },
+      {
+       "text": "<end>",
+       "start_ms": 0,
+       "end_ms": 0,
+       "confidence": 1,
+       "is_final": true
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 2640
+    },
+    {
+     "tokens": [],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 3720
+    },
+    {
+     "tokens": [],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 4800
+    },
+    {
+     "tokens": [],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 5760
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 6000
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 6120
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 6240
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 6480
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 6000,
+       "end_ms": 6060,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 6600
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 6000,
+       "end_ms": 6060,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 6120,
+       "end_ms": 6180,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 6720
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 6000,
+       "end_ms": 6060,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 6120,
+       "end_ms": 6180,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 6240,
+       "end_ms": 6300,
+       "confidence": 0.999,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 6840
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 6000,
+       "end_ms": 6060,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 6120,
+       "end_ms": 6180,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 6240,
+       "end_ms": 6300,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 6420,
+       "end_ms": 6480,
+       "confidence": 0.998,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 6960
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 6000,
+       "end_ms": 6060,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 6120,
+       "end_ms": 6180,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 6240,
+       "end_ms": 6300,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 6420,
+       "end_ms": 6480,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 6600,
+       "end_ms": 6660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 6660,
+       "end_ms": 6720,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 7200
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 6000,
+       "end_ms": 6060,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 6120,
+       "end_ms": 6180,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 6240,
+       "end_ms": 6300,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 6420,
+       "end_ms": 6480,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 6600,
+       "end_ms": 6660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 6660,
+       "end_ms": 6720,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 6780,
+       "end_ms": 6840,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 7320
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 6000,
+       "end_ms": 6060,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 6120,
+       "end_ms": 6180,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 6240,
+       "end_ms": 6300,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 6420,
+       "end_ms": 6480,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 6600,
+       "end_ms": 6660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 6660,
+       "end_ms": 6720,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 6780,
+       "end_ms": 6840,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "o,",
+       "start_ms": 6900,
+       "end_ms": 6960,
+       "confidence": 0.996,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 7440
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 6000,
+       "end_ms": 6060,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 6120,
+       "end_ms": 6180,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 6240,
+       "end_ms": 6300,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 6420,
+       "end_ms": 6480,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 6600,
+       "end_ms": 6660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 6660,
+       "end_ms": 6720,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 6780,
+       "end_ms": 6840,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "o,",
+       "start_ms": 6900,
+       "end_ms": 6960,
+       "confidence": 0.996,
+       "is_final": false
+      },
+      {
+       "text": " th",
+       "start_ms": 7260,
+       "end_ms": 7320,
+       "confidence": 0.998,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 7800
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": false
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " c",
+       "start_ms": 6000,
+       "end_ms": 6060,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "ái",
+       "start_ms": 6120,
+       "end_ms": 6180,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " back",
+       "start_ms": 6240,
+       "end_ms": 6300,
+       "confidence": 0.999,
+       "is_final": false
+      },
+      {
+       "text": "end",
+       "start_ms": 6420,
+       "end_ms": 6480,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": " gi",
+       "start_ms": 6600,
+       "end_ms": 6660,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "úp",
+       "start_ms": 6660,
+       "end_ms": 6720,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": " ta",
+       "start_ms": 6780,
+       "end_ms": 6840,
+       "confidence": 1,
+       "is_final": false
+      },
+      {
+       "text": "o,",
+       "start_ms": 6900,
+       "end_ms": 6960,
+       "confidence": 0.996,
+       "is_final": false
+      },
+      {
+       "text": " th",
+       "start_ms": 7260,
+       "end_ms": 7320,
+       "confidence": 0.998,
+       "is_final": false
+      },
+      {
+       "text": "ank",
+       "start_ms": 7320,
+       "end_ms": 7380,
+       "confidence": 1,
+       "is_final": false
+      }
+     ],
+     "final_audio_proc_ms": 2640,
+     "total_audio_proc_ms": 7920
+    },
+    {
+     "tokens": [
+      {
+       "text": " Ki",
+       "start_ms": 5460,
+       "end_ms": 5520,
+       "confidence": 0.995,
+       "is_final": true
+      },
+      {
+       "text": "ểm",
+       "start_ms": 5580,
+       "end_ms": 5640,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " tra",
+       "start_ms": 5700,
+       "end_ms": 5760,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " lại",
+       "start_ms": 5880,
+       "end_ms": 5940,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " c",
+       "start_ms": 6000,
+       "end_ms": 6060,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "ái",
+       "start_ms": 6120,
+       "end_ms": 6180,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " back",
+       "start_ms": 6240,
+       "end_ms": 6300,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": "end",
+       "start_ms": 6420,
+       "end_ms": 6480,
+       "confidence": 0.998,
+       "is_final": true
+      },
+      {
+       "text": " gi",
+       "start_ms": 6600,
+       "end_ms": 6660,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "úp",
+       "start_ms": 6660,
+       "end_ms": 6720,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " ta",
+       "start_ms": 6780,
+       "end_ms": 6840,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "o,",
+       "start_ms": 6900,
+       "end_ms": 6960,
+       "confidence": 0.996,
+       "is_final": true
+      },
+      {
+       "text": " th",
+       "start_ms": 7260,
+       "end_ms": 7320,
+       "confidence": 0.998,
+       "is_final": true
+      },
+      {
+       "text": "ank",
+       "start_ms": 7320,
+       "end_ms": 7380,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": " y",
+       "start_ms": 7500,
+       "end_ms": 7560,
+       "confidence": 1,
+       "is_final": true
+      },
+      {
+       "text": "ou.",
+       "start_ms": 7560,
+       "end_ms": 7560,
+       "confidence": 0.999,
+       "is_final": true
+      },
+      {
+       "text": "<end>",
+       "start_ms": 0,
+       "end_ms": 0,
+       "confidence": 1,
+       "is_final": true
+      }
+     ],
+     "final_audio_proc_ms": 8040,
+     "total_audio_proc_ms": 8040
+    }
+   ]
+  }
+ }
+}

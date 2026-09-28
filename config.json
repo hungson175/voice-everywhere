@@ -6,7 +6,8 @@
     "num_channels": 1,
     "audio_format": "pcm_s16le",
     "chunk_size": 4096,
-    "language_hints": ["vi", "en"]
+    "language_hints": ["vi", "en"],
+    "enable_endpoint_detection": true
   },
   "voice": {
     "stop_word": "thank you"
