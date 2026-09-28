@@ -96,7 +96,20 @@ const gearBtn = document.getElementById("gear-btn");
 const closeBtn = document.getElementById("close-btn");
 
 // --- Services ---
-const stt = new SonioxSTT();
+// Speech-to-text engine, chosen per device in Settings (localStorage
+// "sttEngine"), read when the mic starts. Soniox is the default; Grok runs
+// through the main-process relay (grok-stt.js). Both share one contract.
+const STT_ENGINES = {
+  soniox: () => {
+    const engine = new SonioxSTT();
+    engine.setConfig(appConfig.soniox);
+    return engine;
+  },
+  grok: () => new GrokSTT(window.voiceEverywhere.grok),
+};
+let appConfig = null;
+let stt = new SonioxSTT(); // replaced in init() / useEngine()
+let sttEngineId = "soniox";
 let detector = null;
 
 // --- Idle-CPU lifecycle (ui/audio-lifecycle.js, loaded via bar.html) ---
@@ -114,6 +127,7 @@ const reconnect = new ReconnectPolicy.ReconnectPolicy();
 let state = "HIDDEN"; // HIDDEN, CONNECTING, LISTENING, PROCESSING, INSERTING, SUCCESS, ERROR
 let cmdGen = 0; // bumped on stop; invalidates in-flight handleCommandDetected() runs
 let sttLive = false; // the engine is connected and hearing — the only time LISTENING is true
+let sttConnecting = false; // a connect attempt is in flight (first start or reconnect)
 let sonioxKey = "";
 let sonioxTerms = [];
 let sonioxTranslationTerms = [];
@@ -177,7 +191,10 @@ function setState(newState, message) {
 
 /** Leave SUCCESS / CLIPBOARD / ERROR. Never shows LISTENING with a dead engine. */
 function returnAfterFeedback() {
-  const next = ReconnectPolicy.afterFeedback({ sttLive, reconnectPending: timers.has("reconnect") });
+  const next = ReconnectPolicy.afterFeedback({
+    sttLive,
+    reconnectPending: sttConnecting || timers.has("reconnect"),
+  });
   if (next === "LISTENING") {
     stt.resetTranscript();
     setState("LISTENING");
@@ -275,7 +292,8 @@ async function startListening() {
   reconnect.reset(); // a session the user started gets the full retry budget
 
   loadSettings();
-  if (!sonioxKey) {
+  useEngine(selectedEngineId());
+  if (sttEngineId === "soniox" && !sonioxKey) {
     setState("ERROR", "No Soniox key");
     return;
   }
@@ -289,6 +307,7 @@ async function startListening() {
 /** One attempt to bring the engine up. First start and every reconnect. */
 async function connectStt() {
   const myStart = startGen.claim(); // stale if a stop lands mid-CONNECTING
+  sttConnecting = true;
   try {
     const context = buildSonioxContext();
     // Transcription-only: no Soniox translation option. The transcript is
@@ -317,6 +336,8 @@ async function connectStt() {
     if (!startGen.isCurrent(myStart) || state === "HIDDEN") return; // stopped externally while connecting
     console.error("Failed to start:", err);
     handleSttDown(err);
+  } finally {
+    if (startGen.isCurrent(myStart)) sttConnecting = false;
   }
 }
 
@@ -328,6 +349,7 @@ async function connectStt() {
 function handleSttDown(err) {
   if (state === "HIDDEN") return;
   sttLive = false;
+  sttConnecting = false;
   startGen.invalidate();
   stt.stop();
 
@@ -359,6 +381,7 @@ function stopListening() {
   cmdGen++; // invalidate any in-flight command so it won't paste after stop
   startGen.invalidate(); // invalidate any in-flight startListening()
   sttLive = false;
+  sttConnecting = false;
   timers.clear("reconnect");
   stt.stop();
   stopWaveform();
@@ -545,20 +568,38 @@ window.voiceEverywhere.onToggleMic(() => {
   }
 });
 
-// --- Init ---
-async function init() {
-  const config = await window.voiceEverywhere.getConfig();
-  sonioxKey = await window.voiceEverywhere.getSonioxKey();
+// --- Engine choice ---
+function selectedEngineId() {
+  let id = "soniox";
+  try {
+    id = localStorage.getItem("sttEngine") || "soniox";
+  } catch { /* storage blocked — default engine */ }
+  return Object.prototype.hasOwnProperty.call(STT_ENGINES, id) ? id : "soniox";
+}
 
-  stt.setConfig(config.soniox);
-  detector = new StopWordDetector(config.voice.stop_word);
-
+/** Switch engines between sessions. Call only while the mic is off. */
+function useEngine(id) {
+  if (id === sttEngineId && stt) return;
+  stt.stop();
+  stt = STT_ENGINES[id]();
+  sttEngineId = id;
   stt.onTranscript = handleTranscript;
   stt.onError = (err) => {
     console.error("STT error:", err);
     handleSttDown(err);
   };
   stt.onClose = handleSttDown;
+  console.log("[stt] engine:", id);
+}
+
+// --- Init ---
+async function init() {
+  appConfig = await window.voiceEverywhere.getConfig();
+  sonioxKey = await window.voiceEverywhere.getSonioxKey();
+
+  detector = new StopWordDetector(appConfig.voice.stop_word);
+  sttEngineId = null; // force useEngine to build and wire the first engine
+  useEngine(selectedEngineId());
 
   loadSettings();
 }

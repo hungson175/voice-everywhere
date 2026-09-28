@@ -10,6 +10,10 @@ Global voice input app for macOS. Speech-to-text → insert text at cursor posit
 ## Commands
 
 ```bash
+# Tests
+npm test                          # unit tests (no network)
+npm run e2e                       # real app + fake mic + live Soniox/Grok (needs keys, network)
+
 # Build & install
 CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --dir
 cp -R dist/mac-arm64/Voice\ Everywhere.app /Applications/
@@ -22,14 +26,14 @@ npm start                         # Launch Electron app (dev mode, opens DevTool
 ## Architecture
 
 ```
-Mic (Web Audio) → Soniox STT + optional native translation → Stop Word ("thank you") → Insert at cursor
+Mic (Web Audio) → STT engine (Soniox default | Grok), transcription-only → Stop Word ("thank you") → DeepSeek v4-flash post-step (translate to output target language if set + Clean-Mode rewrite) → Insert at cursor
 ```
 
 - **Runtime**: Electron (Tray + BrowserWindow, NOT `menubar` package)
 - **Audio**: Web Audio API in renderer (MediaDevices.getUserMedia), NOT SoX
-- **STT**: Soniox WebSocket (`wss://stt-rt.soniox.com/transcribe-websocket`, model `stt-rt-v5`) with optional one-way translation
+- **STT**: switchable per device (Settings → Speech Engine, localStorage `sttEngine`). Soniox (`stt-rt-v5`, direct WebSocket from the bar, endpoint detection on) is the default; Grok Voice Transcribe 2.0 goes through the main-process relay `electron/grok-relay.js` (key `XAI_API_KEY` in `.env`, never sent to the renderer). Both engines share `MicStreamSTT` (`ui/stt.js`).
 - **Text insertion**: System-level (clipboard paste / AppleScript) — the main engineering challenge
-- **Credentials**: local `credentials.json` in Electron user data; Soniox key only
+- **Credentials**: Soniox key in `credentials.json` (Electron user data); `DEEPSEEK_VOICE_API_KEY` and `XAI_API_KEY` in the git-ignored project `.env` (copied into the app by `install.sh`)
 
 Read [lt-memory/architecture.md](lt-memory/architecture.md) for full details, sibling project comparison, and reference guidance.
 
@@ -43,6 +47,8 @@ Read [lt-memory/architecture.md](lt-memory/architecture.md) for full details, si
 ## Pitfalls
 
 - Soniox: First WebSocket message = JSON config, then ONLY binary. Sending JSON after config crashes silently.
+- Soniox endpoint detection sends the command ~0.5 s after speech ends (was ~6 s). It adds a final `<end>` token in the same message as the stop word — drop whole-token `<…>` markers or nothing is ever sent. Rollback: `"enable_endpoint_detection": false` in `config.json`.
+- A dropped STT connection must reconnect (bounded backoff) and the bar must never show LISTENING unless the engine is live. See `ui/reconnect-policy.js`.
 - Soniox translation terms: `[{source, target}]` array, NOT `{key: value}` map.
 - Soniox native translation returns original and translated tokens in one stream; separate them using `translation_status` or text will be duplicated.
 - Build: Must use `CSC_IDENTITY_AUTO_DISCOVERY=false` — without it, electron-builder hangs on code signing.

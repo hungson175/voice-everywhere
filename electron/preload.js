@@ -10,6 +10,18 @@ contextBridge.exposeInMainWorld("voiceEverywhere", {
   // Soniox API key (for direct WebSocket from renderer)
   getSonioxKey: () => ipcRenderer.invoke("get-soniox-key"),
 
+  // Grok engine: relay session in main (the xAI key never reaches the renderer)
+  grok: {
+    open: (sessionId, options) => ipcRenderer.invoke("grok-open", sessionId, options),
+    audio: (sessionId, chunk) => ipcRenderer.send("grok-audio", sessionId, chunk),
+    close: (sessionId) => ipcRenderer.send("grok-close", sessionId),
+    onEvent: (callback) => {
+      const listener = (_event, sessionId, payload) => callback(sessionId, payload);
+      ipcRenderer.on("grok-event", listener);
+      return () => ipcRenderer.removeListener("grok-event", listener);
+    },
+  },
+
   // DeepSeek API key (for Clean Mode rewrite from the bar renderer)
   getDeepseekKey: () => ipcRenderer.invoke("get-deepseek-key"),
   saveDeepseekKey: (deepseekKey) =>

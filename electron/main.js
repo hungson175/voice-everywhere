@@ -17,6 +17,7 @@ const credentials = require("./credentials");
 const { createScratchpadUpdate } = require("../ui/scratchpad-model");
 const { hideBarWindow, showBarWindow } = require("./bar-visibility");
 const { placeBarWindow, BAR_WIDTH, BAR_HEIGHT } = require("./bar-position");
+const { GrokRelay } = require("./grok-relay");
 
 // --- PATH fix for packaged app (Finder doesn't inherit shell PATH) ---
 if (app.isPackaged) {
@@ -34,7 +35,8 @@ const configPath = app.isPackaged
 const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 
 // --- Project .env: extraResources when packaged, project root in dev ---
-// Holds DEEPSEEK_VOICE_API_KEY (direct DeepSeek key for Clean Mode).
+// Holds DEEPSEEK_VOICE_API_KEY (direct DeepSeek key for Clean Mode) and
+// XAI_API_KEY (Grok speech-to-text engine; used only by the relay in main).
 // .env is git-ignored and chmod 600 — never commit it.
 const { loadEnvFile } = require("./env-loader");
 const projectEnvPath = app.isPackaged
@@ -68,6 +70,10 @@ const sonK = process.env.SONIOX_API_KEY || "";
 const dsK = process.env.DEEPSEEK_API_KEY || "";
 console.log(`[keys] Soniox: ${sonK ? sonK.slice(0, 8) + "..." + sonK.slice(-4) : "NOT SET"}`);
 console.log(`[keys] DeepSeek: ${dsK ? dsK.slice(0, 8) + "..." + dsK.slice(-4) : "NOT SET"}`);
+console.log(`[keys] Grok (xAI): ${projectEnv.XAI_API_KEY ? "set" : "NOT SET"}`);
+
+// --- Grok speech-to-text relay (electron/grok-relay.js) ---
+const grokRelay = new GrokRelay({ getKey: () => projectEnv.XAI_API_KEY || "" });
 
 // --- Determine which page to show for settings ---
 function getSettingsStartUrl() {
@@ -236,6 +242,8 @@ app.on("ready", () => {
   });
 
   barWin.loadURL(`file://${path.join(__dirname, "..", "ui", "bar.html")}`);
+  // A reloaded bar has forgotten its Grok sessions; close them upstream.
+  barWin.webContents.on("did-start-loading", () => grokRelay.closeAll());
   barWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   barWin.setIgnoreMouseEvents(true, { forward: true });
 
@@ -367,6 +375,24 @@ ipcMain.handle("insert-text", async (_event, { text, enterMode }) => {
 ipcMain.handle("get-soniox-key", async () => {
   return process.env.SONIOX_API_KEY || "";
 });
+
+// --- IPC: Grok relay sessions (bar renderer ⇄ xAI) ---
+ipcMain.handle("grok-open", async (event, sessionId, options) => {
+  const sender = event.sender;
+  return grokRelay.open(sessionId, options, (payload) => {
+    if (!sender.isDestroyed()) sender.send("grok-event", sessionId, payload);
+  });
+});
+
+ipcMain.on("grok-audio", (_event, sessionId, chunk) => {
+  grokRelay.audio(sessionId, chunk);
+});
+
+ipcMain.on("grok-close", (_event, sessionId) => {
+  grokRelay.close(sessionId);
+});
+
+app.on("before-quit", () => grokRelay.closeAll());
 
 // Provide DeepSeek API key to renderer (Clean Mode)
 ipcMain.handle("get-deepseek-key", async () => {

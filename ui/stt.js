@@ -1,12 +1,21 @@
 /**
- * Soniox STT client — runs in renderer process.
+ * Speech-to-text clients — run in the bar renderer.
  *
- * Uses Web Audio API for mic capture, WebSocket for Soniox streaming.
+ * MicStreamSTT owns what every engine shares: the mic (Web Audio API), the
+ * connect guard, streaming 16-bit PCM, teardown, and reporting a drop. An
+ * engine subclass supplies only its socket and protocol:
+ *   _openSocket(apiKey, context, sessionOptions) → WebSocket-like object
+ *   _handshake(ws, apiKey, context, sessionOptions) — before any audio
+ *   _handleMessage(event), resetTranscript()
  *
- * CRITICAL PROTOCOL:
+ * SonioxSTT (here) and GrokSTT (grok-stt.js) are the engines.
+ *
+ * Soniox CRITICAL PROTOCOL:
  * 1. Send JSON config FIRST (text frame)
  * 2. Then binary audio ONLY (no more JSON!)
  */
+
+const SOCKET_OPEN = 1; // WebSocket.OPEN — also used by socket-like transports
 
 /**
  * Soniox marks protocol events with whole tokens: "<end>" (an endpoint) and
@@ -29,46 +38,46 @@ function sttError(message, transient) {
   return err;
 }
 
-class SonioxSTT {
-  constructor() {
+class MicStreamSTT {
+  constructor(engineName) {
+    this.engineName = engineName;
     this.ws = null;
     this.audioContext = null;
     this.source = null;
     this.processor = null;
     this.analyser = null;
     this.stream = null;
-    this.originalTranscript = "";
-    this.translationTranscript = "";
-    this.translationEnabled = false;
     this.onTranscript = null; // (fullTranscript, finalTranscript, hasFinal) => void
     this.onError = null; // (error) => void — error.transient says retry or not
     this.onClose = null; // (error) => void — the live socket closed on its own
-    this.sonioxConfig = null; // loaded from config.json
     this._connectReject = null; // settle fn for the in-flight connect await
   }
 
-  /**
-   * Set Soniox config from config.json (called once at init).
-   */
-  setConfig(sonioxConfig) {
-    this.sonioxConfig = sonioxConfig;
+  /** { sample_rate, num_channels, chunk_size } for the mic. */
+  _audioConfig() {
+    return { sample_rate: 16000, num_channels: 1, chunk_size: 4096 };
+  }
+
+  /** Reset per-session state; throw if the engine cannot start. */
+  _beginSession(_sessionOptions) {}
+
+  /** Anything the engine must send or await before the first audio frame. */
+  async _handshake(_ws, _apiKey, _context, _sessionOptions) {}
+
+  /** Why the socket closed before it was ready. Engines refine this. */
+  _closedBeforeReady(e) {
+    return sttError(`${this.engineName} connection closed (${e && e.code})`, true);
   }
 
   /**
-   * Start mic capture and connect to Soniox.
+   * Start mic capture and connect.
    * @param {string} apiKey
-   * @param {object} [context] - Soniox context injection object
-   * @param {object} [sessionOptions] - Optional Soniox session fields such as translation
+   * @param {object} [context] - vocabulary: { terms, translation_terms, general }
+   * @param {object} [sessionOptions] - engine session fields (Soniox translation)
    */
   async start(apiKey, context, sessionOptions = {}) {
-    if (!this.sonioxConfig) {
-      throw new Error("Soniox config not set — call setConfig() first");
-    }
-
-    const cfg = this.sonioxConfig;
-    this.originalTranscript = "";
-    this.translationTranscript = "";
-    this.translationEnabled = !!sessionOptions.translation;
+    this._beginSession(sessionOptions);
+    const cfg = this._audioConfig();
 
     // Clean up any stale session first (rapid toggle safety). stop() nulls
     // handles synchronously so the fresh pipeline below owns new objects.
@@ -112,59 +121,26 @@ class SonioxSTT {
 
     console.log("[stt] Mic OK, sample rate:", this.audioContext.sampleRate);
 
-    // Connect to Soniox WebSocket
-    console.log("[stt] Connecting to", cfg.ws_url);
-    this.ws = new WebSocket(cfg.ws_url);
+    console.log(`[stt] Connecting to ${this.engineName}...`);
+    this.ws = this._openSocket(apiKey, context, sessionOptions);
     const pendingWs = this.ws;
 
-    await new Promise((resolve, reject) => {
-      const timeout = setTimeout(
-        () => reject(sttError("Soniox connection timeout", true)),
-        10000
-      );
-      const settle = () => {
-        clearTimeout(timeout);
-        this._connectReject = null;
-      };
-      // stop() calls this to fail fast instead of hanging until timeout/open.
-      this._connectReject = (err) => {
-        settle();
-        reject(err);
-      };
-      pendingWs.onopen = () => {
-        settle();
-        resolve();
-      };
-      pendingWs.onerror = () => {
-        settle();
-        reject(sttError("Soniox connection failed", true));
-      };
+    await this._untilConnected((resolve, reject) => {
+      pendingWs.onopen = () => resolve();
+      pendingWs.onerror = () => reject(sttError(`${this.engineName} connection failed`, true));
+      pendingWs.onclose = (e) => reject(this._closedBeforeReady(e));
     });
+    this._abortIfStale(pendingWs);
 
-    // Stopped (or restarted) while connecting — close the orphaned socket
-    // and abort instead of resurrecting a session after toggle-off.
-    if (this.ws !== pendingWs) {
-      try {
-        pendingWs.close();
-      } catch {
-        // ignore — socket may already be gone
-      }
-      throw new Error("stopped while connecting");
-    }
-
-    console.log("[stt] Connected! Sending config...");
-
-    // CRITICAL: Send JSON config as FIRST message
-    const initMsg = this._buildInitMessage(apiKey, context, sessionOptions);
-
-    console.log("[stt] Init msg:", JSON.stringify(initMsg, null, 2));
-    this.ws.send(JSON.stringify(initMsg));
+    console.log(`[stt] Connected to ${this.engineName}`);
+    await this._handshake(pendingWs, apiKey, context, sessionOptions);
+    this._abortIfStale(pendingWs);
 
     this._attachSocket(this.ws);
 
     // Stream audio chunks as binary
     this.processor.onaudioprocess = (e) => {
-      if (this.ws?.readyState === WebSocket.OPEN) {
+      if (this.ws?.readyState === SOCKET_OPEN) {
         const float32 = e.inputBuffer.getChannelData(0);
         const int16 = this._float32ToInt16(float32);
         this.ws.send(int16.buffer);
@@ -177,9 +153,50 @@ class SonioxSTT {
   }
 
   /**
+   * Await one connect step (socket open, engine ready) with a 10 s bound.
+   * stop() rejects it at once instead of leaving start() hanging.
+   */
+  _untilConnected(executor, timeoutMs = 10000) {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(
+        () => fail(sttError(`${this.engineName} connection timeout`, true)),
+        timeoutMs
+      );
+      const settle = () => {
+        clearTimeout(timeout);
+        this._connectReject = null;
+      };
+      const fail = (err) => {
+        settle();
+        reject(err);
+      };
+      // stop() calls this to fail fast instead of hanging until timeout/open.
+      this._connectReject = fail;
+      executor(() => {
+        settle();
+        resolve();
+      }, fail);
+    });
+  }
+
+  /**
+   * Stopped (or restarted) while connecting — close the orphaned socket
+   * and abort instead of resurrecting a session after toggle-off.
+   */
+  _abortIfStale(pendingWs) {
+    if (this.ws === pendingWs) return;
+    try {
+      pendingWs.close();
+    } catch {
+      // ignore — socket may already be gone
+    }
+    throw new Error("stopped while connecting");
+  }
+
+  /**
    * Handlers for the live socket. stop() detaches them before closing, so any
    * close that reaches onclose is a drop: the network, a server restart, or
-   * Soniox's stream limit. An error event is only logged — a close always
+   * the engine's stream limit. An error event is only logged — a close always
    * follows it, and reporting both tore the session down twice.
    */
   _attachSocket(ws) {
@@ -190,32 +207,8 @@ class SonioxSTT {
     ws.onclose = (e) => {
       console.log("[stt] WS closed: code=" + e.code + " reason=" + e.reason);
       if (ws !== this.ws) return; // a socket we already replaced
-      this.onClose?.(sttError(`Soniox connection closed (${e.code})`, true));
+      this.onClose?.(sttError(`${this.engineName} connection closed (${e.code})`, true));
     };
-  }
-
-  _buildInitMessage(apiKey, context, sessionOptions = {}) {
-    const cfg = this.sonioxConfig;
-    const initMsg = {
-      api_key: apiKey,
-      model: cfg.model,
-      sample_rate: cfg.sample_rate,
-      num_channels: cfg.num_channels,
-      audio_format: cfg.audio_format,
-    };
-    if (cfg.language_hints) initMsg.language_hints = cfg.language_hints;
-    if (cfg.language_hints_strict != null) {
-      initMsg.language_hints_strict = cfg.language_hints_strict;
-    }
-    // Finalize as soon as speech ends (~0.5 s). Without it Soniox holds the
-    // last words — the stop word with them — non-final for ~6 s.
-    initMsg.enable_endpoint_detection = cfg.enable_endpoint_detection !== false;
-    if (context) initMsg.context = context;
-    if (sessionOptions.translation) {
-      initMsg.translation = sessionOptions.translation;
-      initMsg.enable_language_identification = true;
-    }
-    return initMsg;
   }
 
   /**
@@ -321,6 +314,83 @@ class SonioxSTT {
   }
 
   /**
+   * Convert Float32 audio samples to Int16 PCM.
+   */
+  _float32ToInt16(float32) {
+    const int16 = new Int16Array(float32.length);
+    for (let i = 0; i < float32.length; i++) {
+      const s = Math.max(-1, Math.min(1, float32[i]));
+      int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+    }
+    return int16;
+  }
+}
+
+class SonioxSTT extends MicStreamSTT {
+  constructor() {
+    super("Soniox");
+    this.originalTranscript = "";
+    this.translationTranscript = "";
+    this.translationEnabled = false;
+    this.sonioxConfig = null; // loaded from config.json
+  }
+
+  /**
+   * Set Soniox config from config.json (called once at init).
+   */
+  setConfig(sonioxConfig) {
+    this.sonioxConfig = sonioxConfig;
+  }
+
+  _audioConfig() {
+    return this.sonioxConfig;
+  }
+
+  _beginSession(sessionOptions) {
+    if (!this.sonioxConfig) {
+      throw new Error("Soniox config not set — call setConfig() first");
+    }
+    this.originalTranscript = "";
+    this.translationTranscript = "";
+    this.translationEnabled = !!sessionOptions.translation;
+  }
+
+  _openSocket() {
+    return new WebSocket(this.sonioxConfig.ws_url);
+  }
+
+  async _handshake(ws, apiKey, context, sessionOptions) {
+    // CRITICAL: Send JSON config as FIRST message
+    const initMsg = this._buildInitMessage(apiKey, context, sessionOptions);
+    console.log("[stt] Init msg:", JSON.stringify({ ...initMsg, api_key: "<hidden>" }, null, 2));
+    ws.send(JSON.stringify(initMsg));
+  }
+
+  _buildInitMessage(apiKey, context, sessionOptions = {}) {
+    const cfg = this.sonioxConfig;
+    const initMsg = {
+      api_key: apiKey,
+      model: cfg.model,
+      sample_rate: cfg.sample_rate,
+      num_channels: cfg.num_channels,
+      audio_format: cfg.audio_format,
+    };
+    if (cfg.language_hints) initMsg.language_hints = cfg.language_hints;
+    if (cfg.language_hints_strict != null) {
+      initMsg.language_hints_strict = cfg.language_hints_strict;
+    }
+    // Finalize as soon as speech ends (~0.5 s). Without it Soniox holds the
+    // last words — the stop word with them — non-final for ~6 s.
+    initMsg.enable_endpoint_detection = cfg.enable_endpoint_detection !== false;
+    if (context) initMsg.context = context;
+    if (sessionOptions.translation) {
+      initMsg.translation = sessionOptions.translation;
+      initMsg.enable_language_identification = true;
+    }
+    return initMsg;
+  }
+
+  /**
    * Reset accumulated transcript.
    */
   resetTranscript() {
@@ -401,20 +471,10 @@ class SonioxSTT {
       console.error("STT message parse error:", err);
     }
   }
-
-  /**
-   * Convert Float32 audio samples to Int16 PCM.
-   */
-  _float32ToInt16(float32) {
-    const int16 = new Int16Array(float32.length);
-    for (let i = 0; i < float32.length; i++) {
-      const s = Math.max(-1, Math.min(1, float32[i]));
-      int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-    }
-    return int16;
-  }
 }
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = SonioxSTT;
+  module.exports.MicStreamSTT = MicStreamSTT;
+  module.exports.sttError = sttError;
 }

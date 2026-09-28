@@ -14,19 +14,23 @@ Voice Everywhere is a global voice input app for macOS. It converts speech to te
 ## Pipeline Flow
 
 ```
-Microphone (Web Audio API / MediaDevices.getUserMedia)
+Microphone (Web Audio API / MediaDevices.getUserMedia)        ─┐
+    ↓                                                           │ MicStreamSTT (ui/stt.js)
+Renderer PCM conversion (16-bit PCM, 16kHz, mono)              ─┘
     ↓
-Renderer PCM conversion (16-bit PCM, 16kHz, mono)
+STT engine (Settings → Speech Engine):
+  • Soniox — direct WebSocket, stt-rt-v5, endpoint detection    (ui/stt.js SonioxSTT)
+  • Grok   — IPC → main-process relay → wss://api.x.ai/v1/stt   (ui/grok-stt.js, electron/grok-relay.js)
     ↓
-Soniox STT (WebSocket streaming, model stt-rt-v5)
-    ↓
-Token accumulation (interim + final)
-    ↓
-Optional Soniox one-way translation (English or Vietnamese)
+Token/piece accumulation (interim + final)
     ↓
 Stop Word Detector ("thank you")
     ↓
+DeepSeek post-step (translate / Clean Mode, optional)
+    ↓
 Insert at cursor, or open the disposable in-app scratchpad when no input is focused
+
+A dropped connection reconnects with bounded backoff (ui/reconnect-policy.js).
 ```
 
 Pipeline code is nearly identical to voice-vs-extension. The only difference is the final step: system-level text insertion instead of `terminal.sendText()`.
@@ -82,6 +86,12 @@ Accessibility result still uses the clipboard-preserving current-target
 fallback.
 
 ## External Services
+
+### Grok Voice Transcribe 2.0 (xAI)
+- WebSocket: `wss://api.x.ai/v1/stt?model=grok-voice-transcribe-2.0&encoding=pcm&sample_rate=16000&interim_results=true&endpointing=300&keyterm=…`
+- Auth: `Authorization: Bearer $XAI_API_KEY` header — only possible from main (Node WebSocket), never from the renderer
+- Ready when the server sends `transcript.created`; transcripts arrive as `transcript.partial`
+- Design and protocol notes were learned from `~/dev/coding-agents/AI-teams-controller` (`lt-memory/voice-pipeline.md`)
 
 ### Soniox STT
 - WebSocket: `wss://stt-rt.soniox.com/transcribe-websocket`

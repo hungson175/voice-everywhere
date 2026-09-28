@@ -1,0 +1,626 @@
+{
+ "_about": "Real messages from wss://api.x.ai/v1/stt (grok-voice-transcribe-2.0, interim_results=true, endpointing=300), captured 2026-09-24 streaming three Vietnamese sentences with 0.25 s pauses: one speaking turn, three finished pieces. Note: every finished piece carries the TURN's start (0.001); only its own text; the speech_final recap repeats the whole turn.",
+ "expected": "Kiểm tra lại cái backend, xem Celery còn chạy không, rồi restart frontend giúp tao. Gửi tin nhắn cho jarvis qua Tencent, nói là voice feedback đã sửa xong rồi. Mày commit hết mấy thay đổi này, rồi push lên origin master đi.",
+ "messages": [
+  {
+   "type": "transcript.partial",
+   "text": "Kiểm tra lại",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 0.001,
+   "duration": 0.799,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Kiểm tra lại cái backend, xem sao.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 0.001,
+   "duration": 1.799,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Kiểm tra lại cái backend, xem Celery còn chạy không.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 0.001,
+   "duration": 2.799,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Kiểm tra lại cái backend, xem Celery còn chạy không, rồi restart.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 0.001,
+   "duration": 3.799,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Kiểm tra lại cái backend, xem Celery còn chạy không, rồi restart frontend giúp tao.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 0.001,
+   "duration": 4.799,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Kiểm tra lại cái backend, xem Celery còn chạy không, rồi restart frontend giúp tao.",
+   "words": [
+    {
+     "text": "Kiểm",
+     "start": 0.241,
+     "end": 0.382
+    },
+    {
+     "text": "tra",
+     "start": 0.442,
+     "end": 0.543
+    },
+    {
+     "text": "lại",
+     "start": 0.623,
+     "end": 0.763
+    },
+    {
+     "text": "cái",
+     "start": 0.803,
+     "end": 0.904
+    },
+    {
+     "text": "backend,",
+     "start": 0.924,
+     "end": 1.325
+    },
+    {
+     "text": "xem",
+     "start": 1.546,
+     "end": 1.707
+    },
+    {
+     "text": "Celery",
+     "start": 1.767,
+     "end": 2.128
+    },
+    {
+     "text": "còn",
+     "start": 2.208,
+     "end": 2.329
+    },
+    {
+     "text": "chạy",
+     "start": 2.369,
+     "end": 2.509
+    },
+    {
+     "text": "không,",
+     "start": 2.57,
+     "end": 2.79
+    },
+    {
+     "text": "rồi",
+     "start": 3.092,
+     "end": 3.292
+    },
+    {
+     "text": "restart",
+     "start": 3.373,
+     "end": 3.734
+    },
+    {
+     "text": "frontend",
+     "start": 3.774,
+     "end": 4.236
+    },
+    {
+     "text": "giúp",
+     "start": 4.316,
+     "end": 4.456
+    },
+    {
+     "text": "tao.",
+     "start": 4.496,
+     "end": 4.757
+    }
+   ],
+   "is_final": true,
+   "speech_final": false,
+   "start": 0.001,
+   "duration": 5.499,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Gửi tin.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 5.5,
+   "duration": 0.3,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Gửi tin nhắn cho jarvis.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 5.5,
+   "duration": 1.3,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Gửi tin nhắn cho jarvis qua TMCN.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 5.5,
+   "duration": 2.3,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Gửi tin nhắn cho jarvis qua Tencent, nói là voice feedback.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 5.5,
+   "duration": 3.3,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Gửi tin nhắn cho jarvis qua Tencent, nói là voice feedback đã sửa xong rồi.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 5.5,
+   "duration": 4.3,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Gửi tin nhắn cho jarvis qua Tencent, nói là voice feedback đã sửa xong rồi.",
+   "words": [
+    {
+     "text": "Gửi",
+     "start": 5.505,
+     "end": 5.645
+    },
+    {
+     "text": "tin",
+     "start": 5.705,
+     "end": 5.846
+    },
+    {
+     "text": "nhắn",
+     "start": 5.866,
+     "end": 6.046
+    },
+    {
+     "text": "cho",
+     "start": 6.106,
+     "end": 6.187
+    },
+    {
+     "text": "jarvis",
+     "start": 6.247,
+     "end": 6.648
+    },
+    {
+     "text": "qua",
+     "start": 6.728,
+     "end": 6.829
+    },
+    {
+     "text": "Tencent,",
+     "start": 6.929,
+     "end": 7.471
+    },
+    {
+     "text": "nói",
+     "start": 7.751,
+     "end": 7.932
+    },
+    {
+     "text": "là",
+     "start": 7.972,
+     "end": 8.072
+    },
+    {
+     "text": "voice",
+     "start": 8.153,
+     "end": 8.454
+    },
+    {
+     "text": "feedback",
+     "start": 8.454,
+     "end": 8.895
+    },
+    {
+     "text": "đã",
+     "start": 8.915,
+     "end": 8.995
+    },
+    {
+     "text": "sửa",
+     "start": 9.096,
+     "end": 9.256
+    },
+    {
+     "text": "xong",
+     "start": 9.296,
+     "end": 9.457
+    },
+    {
+     "text": "rồi.",
+     "start": 9.497,
+     "end": 9.717
+    }
+   ],
+   "is_final": true,
+   "speech_final": false,
+   "start": 0.001,
+   "duration": 10.559,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Mày commit hết mấy thay đổi.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 10.56,
+   "duration": 1.24,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Mày commit hết mấy thay đổi này, rồi push.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 10.56,
+   "duration": 2.24,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Mày commit hết mấy thay đổi này, rồi push lên origin master.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 10.56,
+   "duration": 3.24,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Mày commit hết mấy thay đổi này, rồi push lên Origin Master đi.",
+   "words": [],
+   "is_final": false,
+   "speech_final": false,
+   "start": 10.56,
+   "duration": 4.24,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Mày commit hết mấy thay đổi này, rồi push lên origin master đi.",
+   "words": [
+    {
+     "text": "Mày",
+     "start": 10.545,
+     "end": 10.665
+    },
+    {
+     "text": "commit",
+     "start": 10.726,
+     "end": 11.027
+    },
+    {
+     "text": "hết",
+     "start": 11.067,
+     "end": 11.227
+    },
+    {
+     "text": "mấy",
+     "start": 11.288,
+     "end": 11.408
+    },
+    {
+     "text": "thay",
+     "start": 11.448,
+     "end": 11.589
+    },
+    {
+     "text": "đổi",
+     "start": 11.629,
+     "end": 11.789
+    },
+    {
+     "text": "này,",
+     "start": 11.829,
+     "end": 12.01
+    },
+    {
+     "text": "rồi",
+     "start": 12.331,
+     "end": 12.472
+    },
+    {
+     "text": "push",
+     "start": 12.512,
+     "end": 12.732
+    },
+    {
+     "text": "lên",
+     "start": 12.793,
+     "end": 12.973
+    },
+    {
+     "text": "origin",
+     "start": 13.114,
+     "end": 13.475
+    },
+    {
+     "text": "master",
+     "start": 13.515,
+     "end": 13.917
+    },
+    {
+     "text": "đi.",
+     "start": 13.997,
+     "end": 14.097
+    }
+   ],
+   "is_final": true,
+   "speech_final": false,
+   "start": 0.001,
+   "duration": 14.939,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.partial",
+   "text": "Kiểm tra lại cái backend, xem Celery còn chạy không, rồi restart frontend giúp tao. Gửi tin nhắn cho jarvis qua Tencent, nói là voice feedback đã sửa xong rồi. Mày commit hết mấy thay đổi này, rồi push lên origin master đi.",
+   "words": [
+    {
+     "text": "Kiểm",
+     "start": 0.241,
+     "end": 0.382
+    },
+    {
+     "text": "tra",
+     "start": 0.442,
+     "end": 0.543
+    },
+    {
+     "text": "lại",
+     "start": 0.623,
+     "end": 0.763
+    },
+    {
+     "text": "cái",
+     "start": 0.803,
+     "end": 0.904
+    },
+    {
+     "text": "backend,",
+     "start": 0.924,
+     "end": 1.325
+    },
+    {
+     "text": "xem",
+     "start": 1.546,
+     "end": 1.707
+    },
+    {
+     "text": "Celery",
+     "start": 1.767,
+     "end": 2.128
+    },
+    {
+     "text": "còn",
+     "start": 2.208,
+     "end": 2.329
+    },
+    {
+     "text": "chạy",
+     "start": 2.369,
+     "end": 2.509
+    },
+    {
+     "text": "không,",
+     "start": 2.57,
+     "end": 2.79
+    },
+    {
+     "text": "rồi",
+     "start": 3.092,
+     "end": 3.292
+    },
+    {
+     "text": "restart",
+     "start": 3.373,
+     "end": 3.734
+    },
+    {
+     "text": "frontend",
+     "start": 3.774,
+     "end": 4.236
+    },
+    {
+     "text": "giúp",
+     "start": 4.316,
+     "end": 4.456
+    },
+    {
+     "text": "tao.",
+     "start": 4.496,
+     "end": 4.757
+    },
+    {
+     "text": "Gửi",
+     "start": 5.505,
+     "end": 5.645
+    },
+    {
+     "text": "tin",
+     "start": 5.705,
+     "end": 5.846
+    },
+    {
+     "text": "nhắn",
+     "start": 5.866,
+     "end": 6.046
+    },
+    {
+     "text": "cho",
+     "start": 6.106,
+     "end": 6.187
+    },
+    {
+     "text": "jarvis",
+     "start": 6.247,
+     "end": 6.648
+    },
+    {
+     "text": "qua",
+     "start": 6.728,
+     "end": 6.829
+    },
+    {
+     "text": "Tencent,",
+     "start": 6.929,
+     "end": 7.471
+    },
+    {
+     "text": "nói",
+     "start": 7.751,
+     "end": 7.932
+    },
+    {
+     "text": "là",
+     "start": 7.972,
+     "end": 8.072
+    },
+    {
+     "text": "voice",
+     "start": 8.153,
+     "end": 8.454
+    },
+    {
+     "text": "feedback",
+     "start": 8.454,
+     "end": 8.895
+    },
+    {
+     "text": "đã",
+     "start": 8.915,
+     "end": 8.995
+    },
+    {
+     "text": "sửa",
+     "start": 9.096,
+     "end": 9.256
+    },
+    {
+     "text": "xong",
+     "start": 9.296,
+     "end": 9.457
+    },
+    {
+     "text": "rồi.",
+     "start": 9.497,
+     "end": 9.717
+    },
+    {
+     "text": "Mày",
+     "start": 10.545,
+     "end": 10.665
+    },
+    {
+     "text": "commit",
+     "start": 10.726,
+     "end": 11.027
+    },
+    {
+     "text": "hết",
+     "start": 11.067,
+     "end": 11.227
+    },
+    {
+     "text": "mấy",
+     "start": 11.288,
+     "end": 11.408
+    },
+    {
+     "text": "thay",
+     "start": 11.448,
+     "end": 11.589
+    },
+    {
+     "text": "đổi",
+     "start": 11.629,
+     "end": 11.789
+    },
+    {
+     "text": "này,",
+     "start": 11.829,
+     "end": 12.01
+    },
+    {
+     "text": "rồi",
+     "start": 12.331,
+     "end": 12.472
+    },
+    {
+     "text": "push",
+     "start": 12.512,
+     "end": 12.732
+    },
+    {
+     "text": "lên",
+     "start": 12.793,
+     "end": 12.973
+    },
+    {
+     "text": "origin",
+     "start": 13.114,
+     "end": 13.475
+    },
+    {
+     "text": "master",
+     "start": 13.515,
+     "end": 13.917
+    },
+    {
+     "text": "đi.",
+     "start": 13.997,
+     "end": 14.097
+    }
+   ],
+   "is_final": true,
+   "speech_final": true,
+   "start": 0.001,
+   "duration": 15.439,
+   "language": "vi"
+  },
+  {
+   "type": "transcript.done",
+   "text": "",
+   "words": [],
+   "duration": 15.961
+  }
+ ]
+}

@@ -115,6 +115,14 @@ enterModeToggle.addEventListener("change", () => {
   localStorage.setItem("enterMode", enterModeToggle.checked);
 });
 
+// Speech-to-text engine (default "soniox", persisted in localStorage).
+// The bar reads it when the mic starts, so a change applies to the next session.
+const sttEngineSelect = document.getElementById("stt-engine-select");
+sttEngineSelect.value = localStorage.getItem("sttEngine") || "soniox";
+sttEngineSelect.addEventListener("change", () => {
+  localStorage.setItem("sttEngine", sttEngineSelect.value);
+});
+
 // Output language (default "auto", persisted in localStorage)
 const outputLangSelect = document.getElementById("output-lang-select");
 outputLangSelect.value = localStorage.getItem("outputLang") || "auto";
