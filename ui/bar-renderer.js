@@ -422,6 +422,9 @@ async function handleCommandDetected(rawCommand) {
     if (rewritten !== null) text = rewritten;
   }
 
+  // Every command ends with the voice-input note on its own line.
+  text = VoiceNote.markAsVoiceInput(text);
+
   // Insert text
   if (text) {
     setState("INSERTING", "Inserting...");
