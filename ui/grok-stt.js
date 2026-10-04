@@ -16,6 +16,21 @@
 /** Relay close codes that retrying will not fix (see electron/grok-relay.js). */
 const GROK_DEFINITE_CLOSE_CODES = new Set([4001, 4003]);
 
+/**
+ * Vietnamese anchor words, sent as xAI keyterms alongside the user's tech
+ * vocabulary. xAI offers no prompt/context parameter, so this is the only
+ * "expect Vietnamese" signal the streaming API accepts: biasing the decoder
+ * toward Vietnamese words keeps short utterances from drifting into Chinese,
+ * Lao or Thai. Harmless for English speech (bias only boosts these tokens).
+ */
+const VI_ANCHOR_KEYTERMS = [
+  "rồi", "không", "được", "cái này", "như vậy", "giúp tao",
+  "kiểm tra", "xem lại", "xong", "nhé", "mày", "tao",
+];
+
+/** Formatting language for every Grok session (see GROK_LANGUAGES in the relay). */
+const GROK_LANGUAGE = "vi";
+
 class GrokIpcSocket {
   /**
    * @param {object} bridge - window.voiceEverywhere.grok
@@ -87,7 +102,10 @@ class GrokSTT extends MicStreamSTT {
 
   _openSocket(_apiKey, context) {
     const id = `grok-${Date.now()}-${++this._sessionSeq}`;
-    return new GrokIpcSocket(this.bridge, id, { keyterms: (context && context.terms) || [] });
+    return new GrokIpcSocket(this.bridge, id, {
+      keyterms: [...VI_ANCHOR_KEYTERMS, ...((context && context.terms) || [])],
+      language: GROK_LANGUAGE,
+    });
   }
 
   _closedBeforeReady(e) {

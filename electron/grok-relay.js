@@ -23,6 +23,19 @@ const READY_TIMEOUT_MS = 10000;
 const MAX_KEYTERMS = 100;
 const MAX_KEYTERM_CHARS = 50;
 
+/**
+ * The only two languages this app speaks. xAI's `language` parameter cannot
+ * lock recognition (the model always auto-detects), it only steers number /
+ * currency formatting — but pinning it to vi/en is the closest the API has
+ * to "expect Vietnamese or English", and anything else is never sent.
+ */
+const GROK_LANGUAGES = new Set(["vi", "en"]);
+
+function cleanLanguage(raw) {
+  const lang = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+  return GROK_LANGUAGES.has(lang) ? lang : "";
+}
+
 const CLOSE_NO_KEY = 4001;
 const CLOSE_KEY_REJECTED = 4003;
 
@@ -46,7 +59,7 @@ function cleanKeyterms(raw) {
   return out;
 }
 
-function grokUrl(keyterms) {
+function grokUrl(keyterms, { language } = {}) {
   const params = new URLSearchParams([
     ["model", GROK_MODEL],
     ["encoding", "pcm"],
@@ -54,6 +67,8 @@ function grokUrl(keyterms) {
     ["interim_results", "true"],
     ["endpointing", String(ENDPOINTING_MS)],
   ]);
+  const lang = cleanLanguage(language);
+  if (lang) params.append("language", lang);
   for (const term of cleanKeyterms(keyterms)) params.append("keyterm", term);
   return `${GROK_URL}?${params}`;
 }
@@ -96,13 +111,13 @@ class GrokRelay {
    * @param {(event: {type:"message", data:string} | {type:"close", code:number, reason:string}) => void} emit
    * @returns {Promise<{ok:true} | {ok:false, code:number, reason:string}>}
    */
-  async open(sessionId, { keyterms } = {}, emit) {
+  async open(sessionId, { keyterms, language } = {}, emit) {
     const key = (this._getKey() || "").trim();
     if (!key) {
       return { ok: false, code: CLOSE_NO_KEY, reason: "No Grok key — add XAI_API_KEY to .env" };
     }
 
-    const ws = new this._WebSocket(grokUrl(keyterms), {
+    const ws = new this._WebSocket(grokUrl(keyterms, { language }), {
       headers: { Authorization: `Bearer ${key}` },
     });
     ws.binaryType = "arraybuffer";
@@ -204,6 +219,8 @@ module.exports = {
   GrokRelay,
   grokUrl,
   cleanKeyterms,
+  cleanLanguage,
+  GROK_LANGUAGES,
   checkXaiKey,
   CLOSE_NO_KEY,
   CLOSE_KEY_REJECTED,

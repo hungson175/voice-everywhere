@@ -99,7 +99,24 @@ describe("GrokSTT", () => {
       const bridge = fakeBridge();
       await startedGrok(bridge);
       assert.equal(bridge.opened.length, 1);
-      assert.deepEqual(bridge.opened[0].options, { keyterms: ["Claude Code"] });
+      const { keyterms } = bridge.opened[0].options;
+      assert.ok(keyterms.includes("Claude Code"), "user vocabulary is kept");
+    } finally {
+      mic.restore();
+    }
+  });
+
+  test("pins the session to Vietnamese formatting + Vietnamese anchor keyterms", async () => {
+    const mic = installMic();
+    try {
+      const bridge = fakeBridge();
+      await startedGrok(bridge);
+      assert.equal(bridge.opened.length, 1);
+      const { language, keyterms } = bridge.opened[0].options;
+      assert.equal(language, "vi");
+      for (const anchor of ["rồi", "không", "giúp tao", "kiểm tra"]) {
+        assert.ok(keyterms.includes(anchor), `anchor ${anchor} biases xAI toward Vietnamese`);
+      }
     } finally {
       mic.restore();
     }

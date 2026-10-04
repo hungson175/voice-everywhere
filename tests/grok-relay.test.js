@@ -69,6 +69,21 @@ describe("grokUrl / cleanKeyterms", () => {
     assert.deepEqual(url.searchParams.getAll("keyterm"), ["Claude Code", "tmux"]);
   });
 
+  test("sends no language by default (xAI auto-detects)", () => {
+    const url = new URL(grokUrl([]));
+    assert.equal(url.searchParams.get("language"), null);
+  });
+
+  test("pins the formatting language when asked (vi/en only — our two languages)", () => {
+    assert.equal(new URL(grokUrl([], { language: "vi" })).searchParams.get("language"), "vi");
+    assert.equal(new URL(grokUrl([], { language: "en" })).searchParams.get("language"), "en");
+  });
+
+  test("drops an unsupported language instead of sending xAI a bad value", () => {
+    assert.equal(new URL(grokUrl([], { language: "zh" })).searchParams.get("language"), null);
+    assert.equal(new URL(grokUrl([], { language: "" })).searchParams.get("language"), null);
+  });
+
   test("trims keyterms to what xAI accepts: ≤100 terms, ≤50 chars, no blanks/dupes", () => {
     const many = Array.from({ length: 150 }, (_, i) => `t${i}`);
     assert.equal(cleanKeyterms(many).length, 100);
